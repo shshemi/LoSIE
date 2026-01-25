@@ -1,0 +1,8 @@
+.env
+.vscode
+.zed
+.idea
+*.json
+*.jsonl
+output
+/target
