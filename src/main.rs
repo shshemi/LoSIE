@@ -1,12 +1,13 @@
 use std::{fs::File, io::Write, path::Path};
 
+use clap::Parser;
 use futures::StreamExt;
 use genai::{
-    Client, ClientBuilder,
+    Client,
     chat::{ChatMessage, ChatRequest},
 };
 use itertools::Itertools;
-use ler_datagen::{AppResult, output_dir::OutputDir, parser::ParserExt};
+use ler_datagen::{AppResult, cli_args::CliArgs, output_dir::OutputDir, parser::ParserExt, synlog};
 use tokio::fs;
 use tracing::{error, info};
 
@@ -14,12 +15,21 @@ const MODEL: &str = "gpt-5-mini-2025-08-07";
 
 #[tokio::main]
 async fn main() -> AppResult<()> {
-    tracing_subscriber::fmt::init();
+    // tracing_subscriber::fmt::init();
     dotenvy::dotenv().ok();
-    // let client = ClientBuilder::default().build();
-    // generate(&client).await;
-    // tag(&client, "output/29-12-2025 14:38:44 - cleaned").await?;
-    parse(&fs::read_to_string("output.txt").await?).await?;
+    let cli_args = CliArgs::parse();
+    match cli_args {
+        CliArgs::Synlog {
+            sources,
+            file,
+            out,
+            model,
+            count,
+        } => synlog::synthetize_log(sources, file, out, count, model).await?,
+    };
+    // tracing_subscriber::fmt::init();
+    // dotenvy::dotenv().ok();
+    // parse(&fs::read_to_string("output.txt").await?).await?;
     Ok(())
 }
 
@@ -28,9 +38,6 @@ async fn parse(txt_contents: &str) -> AppResult<()> {
         .samples()
         .map(|s| serde_json::to_string(&s))
         .collect::<Result<Vec<String>, _>>()?;
-    // let file = File::create("output.json")?;
-    // serde_json::to_writer(&file, &samples)?;
-    // println!("{}", samples);
     let train = &samples[..15000];
     let valid = &samples[15000..];
     std::fs::write("train.jsonl", train.join("\n").as_str())?;
@@ -79,67 +86,67 @@ async fn tag(client: &Client, path: impl AsRef<Path>) -> AppResult<()> {
     Ok(())
 }
 
-async fn generate(client: &Client) {
-    let output_dir = OutputDir::default();
-    info!("Ouput dir created at {output_dir:?}",);
-    let mut join_vec = Vec::new();
-    for software_name in include_str!("../software_list.txt")
-        .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty())
-    // .skip(140)
-    // .take(20)
-    {
-        let client = client.clone();
-        let output_dir = output_dir.clone();
-        join_vec.push(async move {
-            info!("Generating logs for {software_name}");
-            let path = output_dir.file_with_name(software_name);
-            let logs = match synthesize_log(&client, software_name, 40).await {
-                Ok(logs) => logs,
-                Err(err) => {
-                    error!("Generation for {software_name} failed with error:\n{}", err);
-                    return;
-                }
-            };
-            let line_count = logs.lines().count();
-            match fs::write(&path, logs).await {
-                Ok(_) => {
-                    info!(
-                        "{line_count} lines of log was generated an stored in {}",
-                        path.to_str().unwrap_or("unknown")
-                    );
-                }
-                Err(err) => {
-                    error!("Generation for {software_name} failed with error:\n{}", err);
-                }
-            }
-        });
-    }
-    futures::stream::iter(join_vec)
-        .buffered(64)
-        .collect::<Vec<_>>()
-        .await;
-}
+// async fn generate(client: &Client) {
+//     let output_dir = OutputDir::default();
+//     info!("Ouput dir created at {output_dir:?}",);
+//     let mut join_vec = Vec::new();
+//     for software_name in include_str!("../software_list.txt")
+//         .lines()
+//         .map(str::trim)
+//         .filter(|line| !line.is_empty())
+//     // .skip(140)
+//     // .take(20)
+//     {
+//         let client = client.clone();
+//         let output_dir = output_dir.clone();
+//         join_vec.push(async move {
+//             info!("Generating logs for {software_name}");
+//             let path = output_dir.file_with_name(software_name);
+//             let logs = match synlog(&client, software_name, 40).await {
+//                 Ok(logs) => logs,
+//                 Err(err) => {
+//                     error!("Generation for {software_name} failed with error:\n{}", err);
+//                     return;
+//                 }
+//             };
+//             let line_count = logs.lines().count();
+//             match fs::write(&path, logs).await {
+//                 Ok(_) => {
+//                     info!(
+//                         "{line_count} lines of log was generated an stored in {}",
+//                         path.to_str().unwrap_or("unknown")
+//                     );
+//                 }
+//                 Err(err) => {
+//                     error!("Generation for {software_name} failed with error:\n{}", err);
+//                 }
+//             }
+//         });
+//     }
+//     futures::stream::iter(join_vec)
+//         .buffered(64)
+//         .collect::<Vec<_>>()
+//         .await;
+// }
 
-async fn synthesize_log(client: &Client, software_name: &str, count: usize) -> AppResult<String> {
-    single_prompt(client, format!("
-Log lines are semi-structured line delimitered texts\
-produces by software during its runtime that repots the\
-occurance of an event or and internal state in the\
-software. Your task is to generate synthetic logs\
-with the following EXTREEMLY IMPORTANT properties:
-- Synthetic logs should resemble log produced by {software_name}.
-- All the output in plain text.
-- Do not produce any markdown or any other formatting, just the plain text.
-- Use all possible log templates available for {software_name}.
-- Use logs from different capabilities of {software_name}
-- Use all possible log levels for this software.
-- Use all possible app related loggers that you are aware.
-- Uniformly distribute log timestamps across various years (from 1990-2050), months, days, and time of the day.
-Now with all the previous criteria in mind, generate {count} samples.
-").as_str()).await
-}
+// async fn synthesize_log(client: &Client, software_name: &str, count: usize) -> AppResult<String> {
+//     single_prompt(client, format!("
+// Log lines are semi-structured line delimitered texts\
+// produces by software during its runtime that repots the\
+// occurance of an event or and internal state in the\
+// software. Your task is to generate synthetic logs\
+// with the following EXTREEMLY IMPORTANT properties:
+// - Synthetic logs should resemble log produced by {software_name}.
+// - All the output in plain text.
+// - Do not produce any markdown or any other formatting, just the plain text.
+// - Use all possible log templates available for {software_name}.
+// - Use logs from different capabilities of {software_name}
+// - Use all possible log levels for this software.
+// - Use all possible app related loggers that you are aware.
+// - Uniformly distribute log timestamps across various years (from 1990-2050), months, days, and time of the day.
+// Now with all the previous criteria in mind, generate {count} samples.
+// ").as_str()).await
+// }
 
 async fn annotate(client: &Client, log_line: &str) -> AppResult<String> {
     single_prompt(client, format!("Your task is to annotate the given line of log sandwiched between the\
