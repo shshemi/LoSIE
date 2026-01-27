@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
 use genai::{
     ClientBuilder,
@@ -7,16 +7,14 @@ use genai::{
 use itertools::Itertools;
 use serde::Serialize;
 
-use crate::AppResult;
-
-const MODEL: &str = "gpt-5-mini-2025-08-07";
+use crate::{AppResult, token_bucket::TokenBucket};
 
 pub async fn synthetize_log(
     mut sources: Vec<String>,
     file: Option<PathBuf>,
     out: Option<PathBuf>,
     count: usize,
-    model: Option<String>,
+    model: Arc<str>,
 ) -> AppResult<()> {
     if let Some(path) = file {
         tokio::fs::read_to_string(path)
@@ -28,31 +26,47 @@ pub async fn synthetize_log(
     }
     println!("Synthetizing {count} log for {}", sources.iter().join(", "));
     let client = ClientBuilder::default().build();
+    let tb = TokenBucket::new(64);
+
     for src in sources {
+        let src = src.clone();
         let prompt = build_prompt(&src, count);
-        let contents = client
-            .exec_chat(
-                model.as_deref().unwrap_or(MODEL),
-                ChatRequest::new(vec![ChatMessage::user(prompt)]),
-                None,
+        let client = client.clone();
+        let model = model.clone();
+        tb.send(async move {
+            (
+                src,
+                client
+                    .exec_chat(
+                        &model,
+                        ChatRequest::new(vec![ChatMessage::user(prompt)]),
+                        None,
+                    )
+                    .await,
             )
-            .await?
-            .texts()
-            .into_iter()
-            .flat_map(|text| text.lines())
-            .filter(|line| !line.is_empty())
-            .map(|line| LogLine {
-                source: &src,
-                text: line,
-            })
-            .map(|ll| serde_json::to_string(&ll))
-            .collect::<Result<Vec<_>, _>>()?
-            .join("\n");
-        if let Some(path) = &out {
-            let _ = tokio::fs::write(path, contents).await;
-        } else {
-            println!("{contents}");
+        });
+    }
+
+    let mut contents = String::new();
+    for (src, res) in tb {
+        let cr = res?;
+        for text in cr.texts() {
+            for line in text.lines() {
+                if !line.is_empty() {
+                    let json = serde_json::to_string(&LogLine {
+                        source: &src,
+                        text: line,
+                    })?;
+                    contents.push_str(&json);
+                    contents.push('\n');
+                }
+            }
         }
+    }
+    if let Some(path) = out {
+        tokio::fs::write(path, contents).await?;
+    } else {
+        println!("{contents}")
     }
     Ok(())
 }
