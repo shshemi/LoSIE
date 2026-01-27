@@ -3,14 +3,10 @@ use std::sync::Arc;
 use std::path::PathBuf;
 
 use clap::Parser;
-use ler_datagen::{AppResult, gentar, synlog};
+use data_gen::{AppResult, gentar, synlog};
 
 #[derive(Parser, Debug)]
-#[command(
-    name = "lie",
-    version,
-    about = "Data generation tool for log information extraction"
-)]
+#[command(about = "A tool to generate data for structred infromation extraction")]
 pub enum CliArgs {
     /// Synthetize log from given source(s)
     Synlog {
@@ -33,6 +29,7 @@ pub enum CliArgs {
         #[arg(short, long, required = false, default_value_t = 10)]
         count: usize,
     },
+    /// Generate target (key-value information) for logs
     Gentar {
         /// Files
         #[arg(required = true)]
