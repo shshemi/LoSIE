@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -24,17 +24,23 @@ pub enum CliArgs {
         out: Option<PathBuf>,
 
         /// The output file, otherwise stdout
-        #[arg(short, long, required = false)]
-        model: Option<String>,
+        #[arg(short, long, required = false, default_value_t = String::from("gpt-5-mini-2025-08-07"))]
+        model: String,
 
-        #[arg(short, long, required = false, default_value_t = 5)]
+        #[arg(short, long, required = false, default_value_t = 10)]
         count: usize,
     },
-}
+    Gentar {
+        /// Files
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
 
-#[derive(ValueEnum, Clone, Debug)]
-pub enum Level {
-    Low,
-    Medium,
-    High,
+        /// The output file, otherwise stdout
+        #[arg(short, long, required = false)]
+        out: Option<PathBuf>,
+
+        /// The output file, otherwise stdout
+        #[arg(short, long, required = false, default_value_t = String::from("gpt-5-mini-2025-08-07"))]
+        model: String,
+    },
 }
