@@ -4,7 +4,6 @@ use genai::{
     ClientBuilder,
     chat::{ChatMessage, ChatRequest},
 };
-use itertools::Itertools;
 use serde::Serialize;
 
 use crate::{AppResult, token_bucket::TokenBucket};
@@ -24,7 +23,6 @@ pub async fn synthetize_log(
                 sources.push(l.to_owned());
             });
     }
-    println!("Synthetizing {count} log for {}", sources.iter().join(", "));
     let client = ClientBuilder::default().build();
     let tb = TokenBucket::new(64);
 
