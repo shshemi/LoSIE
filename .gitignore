@@ -1,8 +1,8 @@
-.env
-.vscode
-.zed
-.idea
-*.json
-*.jsonl
-output
-/target
+**/.env
+**/.vscode
+**/.zed
+**/.idea
+**/*.json
+**/*.jsonl
+**/output
+data-gen/target
