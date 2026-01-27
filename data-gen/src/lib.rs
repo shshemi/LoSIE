@@ -1,4 +1,3 @@
-pub mod cli_args;
 pub mod gentar;
 pub mod synlog;
 pub mod token_bucket;
