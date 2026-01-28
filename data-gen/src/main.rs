@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use std::path::PathBuf;
 
 use clap::Parser;
