@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{AppResult, token_bucket::AwaitInTokenBucket};
 
-pub async fn generate_target(
+pub async fn exec(
     files: Vec<PathBuf>,
     out: Option<PathBuf>,
     model: impl Into<Arc<str>>,

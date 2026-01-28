@@ -8,7 +8,7 @@ use serde::Serialize;
 
 use crate::{AppResult, token_bucket::TokenBucket};
 
-pub async fn synthetize_log(
+pub async fn exec(
     mut sources: Vec<String>,
     file: Option<PathBuf>,
     out: Option<PathBuf>,

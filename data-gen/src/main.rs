@@ -69,7 +69,7 @@ async fn main() -> AppResult<()> {
             out,
             model,
             count,
-        } => synlog::synthetize_log(sources, file, out, count, Arc::from(model)).await?,
+        } => synlog::exec(sources, file, out, count, Arc::from(model)).await?,
         CliArgs::Gentar {
             files,
             out,
@@ -77,7 +77,7 @@ async fn main() -> AppResult<()> {
             skip,
             count,
             connections,
-        } => gentar::generate_target(files, out, model, skip, count, connections).await?,
+        } => gentar::exec(files, out, model, skip, count, connections).await?,
     };
     Ok(())
 }
