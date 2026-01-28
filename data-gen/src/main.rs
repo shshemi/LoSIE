@@ -19,14 +19,15 @@ pub enum CliArgs {
         file: Option<PathBuf>,
 
         /// The output file, otherwise stdout
-        #[arg(short, long, required = false)]
+        #[arg(long, required = false)]
         out: Option<PathBuf>,
 
         /// The output file, otherwise stdout
-        #[arg(short, long, required = false, default_value_t = String::from("gpt-5-mini-2025-08-07"))]
+        #[arg(long, required = false, default_value_t = String::from("gpt-5-mini-2025-08-07"))]
         model: String,
 
-        #[arg(short, long, required = false, default_value_t = 10)]
+        /// Number of lines generated for each source
+        #[arg(long, required = false, default_value_t = 10)]
         count: usize,
     },
     /// Generate target (key-value information) for logs
@@ -40,8 +41,20 @@ pub enum CliArgs {
         out: Option<PathBuf>,
 
         /// The output file, otherwise stdout
-        #[arg(short, long, required = false, default_value_t = String::from("gpt-5-mini-2025-08-07"))]
+        #[arg(long, required = false, default_value_t = String::from("gpt-5-mini-2025-08-07"))]
         model: String,
+
+        /// The number of samples to skip before generating targets
+        #[arg(long, required = false, default_value_t = 0)]
+        skip: usize,
+
+        /// The number of samples to generate target
+        #[arg(long, required = false)]
+        count: Option<usize>,
+
+        /// The number parallel connections to the LLM provider
+        #[arg(long, required = false, default_value_t = 128)]
+        connections: usize,
     },
 }
 
@@ -57,7 +70,14 @@ async fn main() -> AppResult<()> {
             model,
             count,
         } => synlog::synthetize_log(sources, file, out, count, Arc::from(model)).await?,
-        CliArgs::Gentar { files, out, model } => gentar::generate_target(files, out, model).await?,
+        CliArgs::Gentar {
+            files,
+            out,
+            model,
+            skip,
+            count,
+            connections,
+        } => gentar::generate_target(files, out, model, skip, count, connections).await?,
     };
     Ok(())
 }
