@@ -28,6 +28,7 @@ pub enum CliArgs {
         #[arg(long, required = false, default_value_t = 10)]
         count: usize,
     },
+
     /// Generate target (key-value information) for logs
     Gentar {
         /// Files
