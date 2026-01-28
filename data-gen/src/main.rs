@@ -69,7 +69,7 @@ async fn main() -> AppResult<()> {
             out,
             model,
             count,
-        } => synlog::exec(sources, file, out, count, Arc::from(model)).await?,
+        } => synlog::exec(sources, file, out, count, model).await?,
         CliArgs::Gentar {
             files,
             out,

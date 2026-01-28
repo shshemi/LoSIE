@@ -13,8 +13,9 @@ pub async fn exec(
     file: Option<PathBuf>,
     out: Option<PathBuf>,
     count: usize,
-    model: Arc<str>,
+    model: impl Into<Arc<str>>,
 ) -> AppResult<()> {
+    let model = model.into();
     if let Some(path) = file {
         tokio::fs::read_to_string(path)
             .await?
