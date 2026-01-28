@@ -14,6 +14,7 @@ pub async fn exec(
     out: Option<PathBuf>,
     count: usize,
     model: impl Into<Arc<str>>,
+    connections: usize,
 ) -> AppResult<()> {
     let model = model.into();
     if let Some(path) = file {
@@ -25,7 +26,7 @@ pub async fn exec(
             });
     }
     let client = ClientBuilder::default().build();
-    let tb = TokenBucket::new(64);
+    let tb = TokenBucket::new(connections);
 
     for src in sources {
         let src = src.clone();

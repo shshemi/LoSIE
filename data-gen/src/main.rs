@@ -27,6 +27,10 @@ pub enum CliArgs {
         /// Number of lines generated for each source
         #[arg(long, required = false, default_value_t = 10)]
         count: usize,
+
+        /// The number parallel connections to the LLM provider
+        #[arg(long, required = false, default_value_t = 128)]
+        connections: usize,
     },
 
     /// Generate target (key-value information) for logs
@@ -68,7 +72,8 @@ async fn main() -> AppResult<()> {
             out,
             model,
             count,
-        } => synlog::exec(sources, file, out, count, model).await?,
+            connections,
+        } => synlog::exec(sources, file, out, count, model, connections).await?,
         CliArgs::Gentar {
             files,
             out,
