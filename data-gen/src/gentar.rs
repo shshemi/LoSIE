@@ -27,7 +27,7 @@ pub async fn exec(
         .filter_map(|line| serde_json::from_str::<WithoutTarget>(line).ok())
         .skip(skip)
         .take_while(|_| should_continue_decrementing(count.as_mut()))
-        .map(|without_target| gen_target_with_llm(without_target, model.clone(), client.clone()))
+        .map(|without_target| gen_target_with_llm(without_target, client.clone(), model.clone()))
         .await_in_token_bucket(connections)
         .into_iter()
         .filter_map(|with_target| serde_json::to_string(&with_target).ok())
@@ -67,8 +67,8 @@ struct WithTarget {
 
 async fn gen_target_with_llm(
     without_target: WithoutTarget,
-    model: Arc<str>,
     client: Client,
+    model: Arc<str>,
 ) -> WithTarget {
     let prompt = build_prompt(&without_target);
     let mut target = String::default();
