@@ -20,7 +20,7 @@ pub enum CliArgs {
         #[arg(long, required = false)]
         out: Option<PathBuf>,
 
-        /// The output file, otherwise stdout
+        /// Model name
         #[arg(long, required = false, default_value_t = String::from("gpt-5-mini-2025-08-07"))]
         model: String,
 
@@ -38,7 +38,7 @@ pub enum CliArgs {
         #[arg(short, long, required = false)]
         out: Option<PathBuf>,
 
-        /// The output file, otherwise stdout
+        /// Model name
         #[arg(long, required = false, default_value_t = String::from("gpt-5-mini-2025-08-07"))]
         model: String,
 
