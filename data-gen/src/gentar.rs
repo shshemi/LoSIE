@@ -97,9 +97,17 @@ fn build_prompt(log: &WithoutTarget) -> String {
     format!(
         "Your task it to extract information in key value format from log lines.\
 Analyze the line carefully sandwiched in triple backticks. Then produce\
-the key value information. After key values, generate one pair with key\
-'@' and the value the shows a up to five words summary of the log content. Then, write\
-the output in the following format:
+the key-value information. Some of the common keys that you can find are as follow:
+1. timestamp
+2. level
+3. process_id
+4. thread_id
+5. logger
+All common keys are optional and is not a must to be detected.
+Do not limit yourself to these but if you see these, do not hesitate to extract them\
+as key-values. After key-values, generate one pair with key '@' and the value that\
+shows a up to five words summary of the log content. Then, write the output in the\
+following format:
 Key1 Value1
 Key2 Value2
 @ Summary
