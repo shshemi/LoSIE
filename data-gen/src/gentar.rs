@@ -73,18 +73,21 @@ async fn gen_target_with_llm(
     let prompt = build_prompt(&without_target);
     let mut target = String::default();
     for _ in 0..5 {
-        if let Some(fetched) = client
+        match client
             .exec_chat(
                 &model,
                 ChatRequest::new(vec![ChatMessage::user(&prompt)]),
                 None,
             )
             .await
-            .ok()
-            .and_then(|cr| cr.into_first_text())
         {
-            target = fetched;
-            break;
+            Ok(chat_request) => {
+                if let Some(first_text) = chat_request.into_first_text() {
+                    target = first_text;
+                }
+                break;
+            }
+            Err(err) => log::error!("Error: {err}"),
         }
     }
     without_target.into_with_target(target)

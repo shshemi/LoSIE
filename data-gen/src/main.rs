@@ -1,7 +1,9 @@
-use std::path::PathBuf;
+use std::{fs::OpenOptions, path::PathBuf};
 
 use clap::Parser;
 use data_gen::{AppResult, gentar, synlog};
+use env_logger::Target;
+use tokio::fs::File;
 
 #[derive(Parser, Debug)]
 #[command(about = "A tool to generate data for structred infromation extraction")]
@@ -63,6 +65,14 @@ pub enum CliArgs {
 
 #[tokio::main]
 async fn main() -> AppResult<()> {
+    env_logger::builder()
+        .target(Target::Pipe(Box::new(
+            OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open("data-gen.log")?,
+        )))
+        .init();
     dotenvy::dotenv().ok();
     let cli_args = CliArgs::parse();
     match cli_args {

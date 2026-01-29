@@ -4,6 +4,7 @@ use genai::{
     ClientBuilder,
     chat::{ChatMessage, ChatRequest},
 };
+use log::{error, info};
 use serde::Serialize;
 
 use crate::{AppResult, token_bucket::TokenBucket};
@@ -49,18 +50,23 @@ pub async fn exec(
 
     let mut contents = String::new();
     for (src, res) in tb {
-        let cr = res?;
-        for text in cr.texts() {
-            for line in text.lines() {
-                if !line.is_empty() {
-                    let json = serde_json::to_string(&LogLine {
-                        source: &src,
-                        text: line,
-                    })?;
-                    contents.push_str(&json);
-                    contents.push('\n');
+        match res {
+            Ok(chat_request) => {
+                info!("Log received for {src}");
+                for text in chat_request.into_texts() {
+                    for line in text.lines() {
+                        if !line.is_empty() {
+                            let json = serde_json::to_string(&LogLine {
+                                source: &src,
+                                text: line,
+                            })?;
+                            contents.push_str(&json);
+                            contents.push('\n');
+                        }
+                    }
                 }
             }
+            Err(err) => error!("Error: {err}"),
         }
     }
     if let Some(path) = out {
