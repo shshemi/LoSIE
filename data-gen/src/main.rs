@@ -3,7 +3,6 @@ use std::{fs::OpenOptions, path::PathBuf};
 use clap::Parser;
 use data_gen::{AppResult, gentar, synlog};
 use env_logger::Target;
-use tokio::fs::File;
 
 #[derive(Parser, Debug)]
 #[command(about = "A tool to generate data for structred infromation extraction")]
