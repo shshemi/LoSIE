@@ -72,6 +72,7 @@ async fn main() -> AppResult<()> {
                 .append(true)
                 .open("data-gen.log")?,
         )))
+        .filter_level(log::LevelFilter::Info)
         .init();
     dotenvy::dotenv().ok();
     let cli_args = CliArgs::parse();
