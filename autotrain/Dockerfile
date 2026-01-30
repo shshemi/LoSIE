@@ -20,16 +20,17 @@ RUN python3.11 -m pip install --no-cache-dir --upgrade pip
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    HF_HOME=/workspace/output/training/hf \
-    TRANSFORMERS_CACHE=/workspace/output/training/hf/transformers \
-    HF_DATASETS_CACHE=/workspace/output/training/hf/datasets
+    HF_HOME=/output/training/hf \
+    TRANSFORMERS_CACHE=/output/training/hf/transformers \
+    HF_DATASETS_CACHE=/output/training/hf/datasets
 
 RUN python3.11 -m pip install --no-cache-dir \
     torch --index-url https://download.pytorch.org/whl/cu121
 RUN python3.11 -m pip install --no-cache-dir autotrain-advanced
 
-RUN mkdir -p /workspace/autotrain /workspace/output/training
-COPY autotrain/ /workspace/autotrain/
+RUN mkdir -p /workspace /output/training /data
+COPY output/splits/ /data/
+COPY autotrain/ /workspace/
 
-WORKDIR /workspace/output/training
-CMD ["autotrain", "--config", "/workspace/autotrain/seq_2_seq_config.yaml"]
+WORKDIR /output/training
+CMD ["autotrain", "--config", "/workspace/seq_2_seq_config.yaml"]

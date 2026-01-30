@@ -1,11 +1,11 @@
 task: seq2seq
 base_model: google/byt5-small
-project_name: autotrain-seq2seq-local
+project_name: /output/training/autotrain-seq2seq
 log: tensorboard
 backend: local
 
 data:
-  path: ../output/splits/
+  path: /data
   train_split: train
   valid_split: valid
   column_mapping:
