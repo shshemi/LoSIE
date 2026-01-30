@@ -1,0 +1,29 @@
+task: seq2seq
+base_model: google/byt5-small
+project_name: autotrain-seq2seq-local
+log: tensorboard
+backend: local
+
+data:
+  path: ../output/splits/
+  train_split: train
+  valid_split: valid
+  column_mapping:
+    text_column: text
+    target_column: target
+
+
+params:
+  max_seq_length: 2048
+  epochs: 16
+  batch_size: 8
+  lr: 2e-5
+  optimizer: adamw_torch
+  scheduler: linear
+  gradient_accumulation: 1
+  mixed_precision: f16
+
+hub:
+  username: 
+  token: 
+  push_to_hub: false
