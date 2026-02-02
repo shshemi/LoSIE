@@ -1,9 +1,9 @@
 Bootstrap: docker
-From: nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
 
 %labels
     Author shshemi-ai-bot
-    Description AutoTrain GPU container (CUDA 12.1, PyTorch cu121)
+    Description AutoTrain GPU container (CUDA 12.8, PyTorch cu128)
 
 %environment
     export PYTHONDONTWRITEBYTECODE=1
@@ -35,9 +35,22 @@ From: nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 
     curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
     python3.11 -m pip install --no-cache-dir --upgrade pip
+    TORCH_VERSION=2.9.1
+    TORCHVISION_VERSION=0.24.1
+    TORCHAUDIO_VERSION=2.9.1
+    TORCH_INDEX_URL=https://download.pytorch.org/whl/cu128
+
     python3.11 -m pip install --no-cache-dir \
-        torch --index-url https://download.pytorch.org/whl/cu121
-    python3.11 -m pip install --no-cache-dir autotrain-advanced
+        torch==${TORCH_VERSION} \
+        torchvision==${TORCHVISION_VERSION} \
+        torchaudio==${TORCHAUDIO_VERSION} \
+        --index-url ${TORCH_INDEX_URL}
+    cat >/tmp/pip-constraints.txt <<EOF
+torch==${TORCH_VERSION}
+torchvision==${TORCHVISION_VERSION}
+torchaudio==${TORCHAUDIO_VERSION}
+EOF
+    python3.11 -m pip install --no-cache-dir -c /tmp/pip-constraints.txt autotrain-advanced
 
     mkdir -p /workspace /output/training /data
 
