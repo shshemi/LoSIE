@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     build-essential \
-    && add-apt-repository ppa:deadsnakes/ppa \
+    && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update && apt-get install -y --no-install-recommends \
         python3.11 \
         python3.11-venv \
@@ -24,9 +24,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TRANSFORMERS_CACHE=/output/training/hf/transformers \
     HF_DATASETS_CACHE=/output/training/hf/datasets
 
+ENV TORCH_VERSION=2.9.1 \
+    TORCHVISION_VERSION=0.24.1 \
+    TORCHAUDIO_VERSION=2.9.1 \
+    TORCH_INDEX_URL=https://download.pytorch.org/whl/cu128
+
 RUN python3.11 -m pip install --no-cache-dir \
-    torch --index-url https://download.pytorch.org/whl/cu121
-RUN python3.11 -m pip install --no-cache-dir autotrain-advanced
+    torch==${TORCH_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
+    torchaudio==${TORCHAUDIO_VERSION} \
+    --index-url ${TORCH_INDEX_URL}
+RUN printf "torch==%s\ntorchvision==%s\ntorchaudio==%s\n" \
+    "${TORCH_VERSION}" "${TORCHVISION_VERSION}" "${TORCHAUDIO_VERSION}" \
+    > /tmp/pip-constraints.txt \
+    && python3.11 -m pip install --no-cache-dir -c /tmp/pip-constraints.txt autotrain-advanced
 
 RUN mkdir -p /workspace /output/training /data
 COPY output/splits/ /data/
