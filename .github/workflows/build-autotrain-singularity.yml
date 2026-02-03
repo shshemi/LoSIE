@@ -2,6 +2,10 @@ name: Build Autotrain Singularity Image
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/build-autotrain-singularity.yml
+      - autotrain/**
 
 jobs:
   build:
