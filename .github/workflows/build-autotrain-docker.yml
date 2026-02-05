@@ -2,13 +2,10 @@ name: Build Autotrain Docker Image
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - .github/workflows/build-autotrain-docker.yml
-      - autotrain/**
 
 jobs:
   build:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -32,10 +29,3 @@ jobs:
         run: |
           docker build -f autotrain/Dockerfile -t autotrain:latest .
           docker save autotrain:latest -o autotrain-docker.tar
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: autotrain-docker
-          path: autotrain-docker.tar
-          if-no-files-found: error

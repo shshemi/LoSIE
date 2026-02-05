@@ -49,13 +49,6 @@ jobs:
           sudo apptainer build autotrain.sif autotrain/autotrain.def
           sudo chown "$USER:$USER" autotrain.sif
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: autotrain-sif
-          path: autotrain.sif
-          if-no-files-found: error
-
       - name: Setup SSH agent
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         uses: webfactory/ssh-agent@v0.9.0
