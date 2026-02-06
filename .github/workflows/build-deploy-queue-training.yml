@@ -56,7 +56,7 @@ jobs:
       - name: Create remote output directory
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         run: |
-          REMOTE_DIR=$(ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" 'ts=$(date +"%Y-%m-%d-%H-%M-%S"); dir="$HOME/LoSIE/$ts"; mkdir -p "$dir"; echo "$dir"')
+          REMOTE_DIR=$(ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" "bash -lc 'ts=\$(date +\"%Y-%m-%d-%H-%M-%S\"); dir=\"\$HOME/LoSIE/\$ts\"; mkdir -p \"\$dir\"; echo \"\$dir\"'")
           echo "REMOTE_DIR=$REMOTE_DIR" >> "$GITHUB_ENV"
 
       - name: SCP SIF to remote host
@@ -69,7 +69,7 @@ jobs:
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         run: |
           ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" \
-            "mkdir -p '$REMOTE_DIR/logs' '$REMOTE_DIR/output'; \
-            mv '$REMOTE_DIR/losie_run.sbatch.template' '$REMOTE_DIR/losie_run.sbatch'; \
-            sed -i \"s|__REMOTE_DIR__|$REMOTE_DIR|g\" '$REMOTE_DIR/losie_run.sbatch'; \
-            sbatch '$REMOTE_DIR/losie_run.sbatch'"
+            "bash -lc 'mkdir -p \"$REMOTE_DIR/logs\" \"$REMOTE_DIR/output\"; \
+            mv \"$REMOTE_DIR/losie_run.sbatch.template\" \"$REMOTE_DIR/losie_run.sbatch\"; \
+            sed -i \"s|__REMOTE_DIR__|$REMOTE_DIR|g\" \"$REMOTE_DIR/losie_run.sbatch\"; \
+            sbatch \"$REMOTE_DIR/losie_run.sbatch\"'"
