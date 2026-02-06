@@ -4,9 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    HF_HOME=/output/training/hf \
-    TRANSFORMERS_CACHE=/output/training/hf/transformers \
-    HF_DATASETS_CACHE=/output/training/hf/datasets
+    HF_HOME=/output/hf
 
 ENV TORCH_VERSION=2.9.1 \
     TORCHVISION_VERSION=0.24.1 \
@@ -41,9 +39,9 @@ RUN set -eux; \
     apt-get purge -y --auto-remove build-essential software-properties-common; \
     rm -rf /var/lib/apt/lists/* /root/.cache/pip /tmp/pip-constraints.txt
 
-RUN mkdir -p /workspace /output/training /data
+RUN mkdir -p /workspace /output/hf /data
 COPY output/splits/ /data/
 COPY autotrain/ /workspace/
 
-WORKDIR /output/training
+WORKDIR /output
 CMD ["autotrain", "--config", "/workspace/seq_2_seq_config.yaml"]
