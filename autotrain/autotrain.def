@@ -52,7 +52,9 @@ torch==${TORCH_VERSION}
 torchvision==${TORCHVISION_VERSION}
 torchaudio==${TORCHAUDIO_VERSION}
 EOF
-    python3.11 -m pip install --no-cache-dir -c /tmp/pip-constraints.txt autotrain-advanced
+    python3.11 -m pip install --no-cache-dir -c /tmp/pip-constraints.txt \
+        autotrain-advanced \
+        six
     apt-get purge -y --auto-remove build-essential software-properties-common
     rm -rf /var/lib/apt/lists/* /root/.cache/pip /tmp/pip-constraints.txt
 
@@ -60,7 +62,9 @@ EOF
 
 %files
     autotrain/ /workspace/
-    output/splits/ /data/
+    output/splits/train.jsonl /data/train.jsonl
+    output/splits/valid.jsonl /data/valid.jsonl
+    output/splits/test.jsonl /data/test.jsonl
 
 %runscript
-    exec autotrain --config /workspace/seq_2_seq_config.yaml "$@"
+    exec autotrain --config /workspace/autotrain/seq_2_seq_config.yaml
