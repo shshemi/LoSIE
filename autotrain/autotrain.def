@@ -60,17 +60,15 @@ EOF
     rm -rf /var/lib/apt/lists/* /root/.cache/pip /tmp/pip-constraints.txt
 
     mkdir -p /workspace /output/training /data
-    python3.11 - <<'PY'
-import nltk
-nltk.download('punkt_tab')
-PY
 
 %files
     autotrain/ /workspace/
+    scripts/ /workspace/scripts/
     output/splits/train.jsonl /data/train.jsonl
     output/splits/valid.jsonl /data/valid.jsonl
     output/splits/test.jsonl /data/test.jsonl
 
 %runscript
     cd /output
+    python3.11 /workspace/scripts/nltk_download.py
     exec autotrain --config /workspace/autotrain/seq_2_seq_config.yaml
