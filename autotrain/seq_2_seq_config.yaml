@@ -1,6 +1,6 @@
 task: seq2seq
 base_model: google/byt5-small
-project_name: /output/training/autotrain-seq2seq
+project_name: losie
 log: tensorboard
 backend: local
 
