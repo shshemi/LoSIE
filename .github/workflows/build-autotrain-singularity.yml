@@ -56,18 +56,14 @@ jobs:
       - name: Create remote output directory
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         run: |
-          REMOTE_DIR=$(ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" 'ts=$(date +"%Y-%m-%d %H:%M:%S"); dir="$HOME/LoSIE/$ts"; mkdir -p "$dir"; echo "$dir"')
-          {
-            echo "REMOTE_DIR<<EOF"
-            echo "$REMOTE_DIR"
-            echo "EOF"
-          } >> "$GITHUB_ENV"
+          REMOTE_DIR=$(ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" 'ts=$(date +"%Y%m%d-%H%M%S"); dir="$HOME/LoSIE/$ts"; mkdir -p "$dir"; echo "$dir"')
+          echo "REMOTE_DIR=$REMOTE_DIR" >> "$GITHUB_ENV"
 
       - name: SCP SIF to remote host
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         run: |
           scp -P "$SSH_PORT" autotrain.sif sbatch/losie_run.sbatch.template \
-            "${SSH_USER}@${SSH_HOST}:'${REMOTE_DIR}/'"
+            "${SSH_USER}@${SSH_HOST}:${REMOTE_DIR}/"
 
       - name: Prepare remote run files
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
