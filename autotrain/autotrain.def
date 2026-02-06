@@ -67,4 +67,5 @@ EOF
     output/splits/test.jsonl /data/test.jsonl
 
 %runscript
+    cd /output
     exec autotrain --config /workspace/autotrain/seq_2_seq_config.yaml
