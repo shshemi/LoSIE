@@ -54,7 +54,39 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
 
+      - name: Create remote output directory
+        if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
+        run: |
+          REMOTE_DIR=$(ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" 'ts=$(date +"%Y%m%d-%H%M%S"); dir="$HOME/LoSIE/$ts"; mkdir -p "$dir"; echo "$dir"')
+          echo "REMOTE_DIR=$REMOTE_DIR" >> "$GITHUB_ENV"
+
       - name: SCP SIF to remote host
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         run: |
-          scp -P "$SSH_PORT" autotrain.sif "${SSH_USER}@${SSH_HOST}:${SSH_PATH}"
+          scp -P "$SSH_PORT" autotrain.sif "${SSH_USER}@${SSH_HOST}:${REMOTE_DIR}/"
+
+      - name: Prepare remote run files
+        if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
+        run: |
+          ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" "REMOTE_DIR='$REMOTE_DIR'; \
+            mkdir -p \"\$REMOTE_DIR/logs\" \"\$REMOTE_DIR/output\"; \
+            cat > \"\$REMOTE_DIR/losie_run.sbatch\" <<'EOF'
+#!/bin/bash
+#SBATCH --job-name=losie-sif-run
+#SBATCH --partition=k2-gpu-a100
+#SBATCH --gres=gpu:a100:1
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --mem=80G
+#SBATCH --time=3-00:00:00
+#SBATCH --output=__REMOTE_DIR__/logs/losie-sif-run.out
+#SBATCH --error=__REMOTE_DIR__/logs/losie-sif-run.err
+
+module load apps/singularity/3.10.0
+
+SIF=__REMOTE_DIR__/autotrain.sif
+OUTDIR=__REMOTE_DIR__/output
+
+singularity run --nv -B \"\${OUTDIR}:/output\" \"\$SIF\"
+EOF
+            sed -i \"s|__REMOTE_DIR__|$REMOTE_DIR|g\" \"\$REMOTE_DIR/losie_run.sbatch\""
