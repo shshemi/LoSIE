@@ -12,7 +12,6 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_PORT: ${{ secrets.SSH_PORT }}
       SSH_USER: ${{ secrets.SSH_USER }}
-      SSH_PATH: ${{ secrets.SSH_PATH }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
