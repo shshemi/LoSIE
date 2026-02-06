@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH --job-name=losie-sif-run
+#SBATCH --partition=k2-gpu-a100
+#SBATCH --gres=gpu:a100:1
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --mem=80G
+#SBATCH --time=3-00:00:00
+#SBATCH --output=__REMOTE_DIR__/logs/losie-sif-run.out
+#SBATCH --error=__REMOTE_DIR__/logs/losie-sif-run.err
+
+module load apps/singularity/3.10.0
+
+SIF=__REMOTE_DIR__/autotrain.sif
+OUTDIR=__REMOTE_DIR__/output
+
+singularity run --nv -B "${OUTDIR}:/output" "$SIF"
