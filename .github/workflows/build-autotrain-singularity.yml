@@ -1,4 +1,4 @@
-name: Build Autotrain Singularity Image
+name: Build and Deploy AutoTrain Singularity Image
 
 on:
   workflow_dispatch:
