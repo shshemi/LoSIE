@@ -72,9 +72,3 @@ jobs:
             "mkdir -p '$REMOTE_DIR/logs' '$REMOTE_DIR/output'; \
             mv '$REMOTE_DIR/losie_run.sbatch.template' '$REMOTE_DIR/losie_run.sbatch'; \
             sed -i \"s|__REMOTE_DIR__|$REMOTE_DIR|g\" '$REMOTE_DIR/losie_run.sbatch'"
-
-      - name: Submit remote job
-        if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
-        run: |
-          ssh -tt -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" \
-            "bash -lic 'sbatch \"$REMOTE_DIR/losie_run.sbatch\"'"
