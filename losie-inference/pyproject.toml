@@ -1,0 +1,17 @@
+[project]
+name = "losie-inference"
+version = "0.1.0"
+description = "Run inference against a local AutoTrain seq2seq checkpoint."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.2.0",
+    "transformers>=4.40.0",
+]
+
+[project.scripts]
+losie-infer = "losie_inference.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.24.0"]
+build-backend = "hatchling.build"

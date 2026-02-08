@@ -3,6 +3,7 @@
 **/.vscode
 **/.zed
 **/.idea
+**/__pycache__
 **/*.json
 **/*.jsonl
 **/output
