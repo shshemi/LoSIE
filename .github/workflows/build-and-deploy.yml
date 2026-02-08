@@ -2,6 +2,12 @@ name: Build and Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      autotrain_config:
+        description: Config path inside the SIF passed to autotrain --config
+        required: true
+        default: /workspace/autotrain/seq_2_seq_config.yaml
+        type: string
 
 jobs:
   build:
@@ -12,6 +18,7 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_PORT: ${{ secrets.SSH_PORT }}
       SSH_USER: ${{ secrets.SSH_USER }}
+      AUTOTRAIN_CONFIG: ${{ inputs.autotrain_config }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,7 +75,8 @@ jobs:
       - name: Prepare remote run files
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         run: |
+          ESCAPED_CONFIG=$(printf '%s\n' "$AUTOTRAIN_CONFIG" | sed 's/[|&]/\\&/g')
           ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" \
             "mkdir -p '$REMOTE_DIR/logs' '$REMOTE_DIR/output'; \
             mv '$REMOTE_DIR/losie_run.sbatch.template' '$REMOTE_DIR/losie_run.sbatch'; \
-            sed -i \"s|__REMOTE_DIR__|$REMOTE_DIR|g\" '$REMOTE_DIR/losie_run.sbatch'"
+            sed -i \"s|__REMOTE_DIR__|$REMOTE_DIR|g; s|__AUTOTRAIN_CONFIG__|$ESCAPED_CONFIG|g\" '$REMOTE_DIR/losie_run.sbatch'"

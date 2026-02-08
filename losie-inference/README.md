@@ -21,4 +21,4 @@ Optional flags:
 uv run losie-infer --model-dir ../output/losie --device 0 --max-new-tokens 256 "your input text"
 ```
 
-By default this lets `transformers` pipeline choose the device automatically. Use `--device` only to force a specific index or CPU (`--device -1`).
+By default this script auto-selects device in this order: CUDA, then MPS, then CPU. Use `--device` to force a specific CUDA index or CPU (`--device -1`).

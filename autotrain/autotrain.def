@@ -69,4 +69,7 @@ EOF
 %runscript
     cd /output
     python3.11 /workspace/scripts/nltk_download.py
+    if [ "$#" -gt 0 ]; then
+        exec autotrain "$@"
+    fi
     exec autotrain --config /workspace/autotrain/seq_2_seq_config.yaml
