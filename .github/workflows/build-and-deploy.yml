@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       autotrain_config:
-        description: Config path inside the SIF passed to autotrain --config
+        description: Config filename under /workspace/autotrain passed to autotrain --config
         required: true
-        default: /workspace/autotrain/seq_2_seq_config.yaml
+        default: seq_2_seq_config.yaml
         type: string
 
 jobs:
@@ -75,7 +75,12 @@ jobs:
       - name: Prepare remote run files
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         run: |
-          ESCAPED_CONFIG=$(printf '%s\n' "$AUTOTRAIN_CONFIG" | sed 's/[|&]/\\&/g')
+          if [[ "$AUTOTRAIN_CONFIG" == */* ]]; then
+            echo "autotrain_config must be a filename, not a path: $AUTOTRAIN_CONFIG" >&2
+            exit 1
+          fi
+          CONFIG_PATH="/workspace/autotrain/$AUTOTRAIN_CONFIG"
+          ESCAPED_CONFIG=$(printf '%s\n' "$CONFIG_PATH" | sed 's/[|&]/\\&/g')
           ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" \
             "mkdir -p '$REMOTE_DIR/logs' '$REMOTE_DIR/output'; \
             mv '$REMOTE_DIR/losie_run.sbatch.template' '$REMOTE_DIR/losie_run.sbatch'; \
