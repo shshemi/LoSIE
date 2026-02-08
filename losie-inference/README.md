@@ -22,3 +22,5 @@ uv run losie-infer --model-dir ../output/losie --device 0 --max-new-tokens 256 "
 ```
 
 By default this script auto-selects device in this order: CUDA, then MPS, then CPU. Use `--device` to force a specific CUDA index or CPU (`--device -1`).
+
+If output appears cut off, increase `--max-new-tokens`, set `--min-new-tokens`, or test with `--ignore-eos`. The script now prints `Stop reason` (`eos_token` vs `max_new_tokens`) and generated token count.

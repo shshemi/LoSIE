@@ -30,6 +30,17 @@ def parse_args() -> argparse.Namespace:
         help="Maximum number of new tokens to generate.",
     )
     parser.add_argument(
+        "--min-new-tokens",
+        type=int,
+        default=0,
+        help="Minimum number of new tokens to generate.",
+    )
+    parser.add_argument(
+        "--ignore-eos",
+        action="store_true",
+        help="Do not stop on EOS token; continue until max token limit.",
+    )
+    parser.add_argument(
         "--device",
         type=int,
         default=None,
@@ -76,12 +87,42 @@ def main() -> None:
 
     encoded = tokenizer(args.text, return_tensors="pt", truncation=True)
     encoded = {name: tensor.to(device) for name, tensor in encoded.items()}
+
+    generation_kwargs = {
+        "max_new_tokens": args.max_new_tokens,
+        "min_new_tokens": args.min_new_tokens,
+        "return_dict_in_generate": True,
+    }
+    if args.ignore_eos:
+        generation_kwargs["eos_token_id"] = None
+
     with torch.inference_mode():
-        output_ids = model.generate(**encoded, max_new_tokens=args.max_new_tokens)
-    output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
+        generated = model.generate(**encoded, **generation_kwargs)
+
+    sequence = generated.sequences[0]
+    output_text = tokenizer.decode(sequence, skip_special_tokens=True)
+
+    eos_token_id = model.generation_config.eos_token_id
+    if isinstance(eos_token_id, int):
+        eos_token_ids = {eos_token_id}
+    elif isinstance(eos_token_id, (list, tuple, set)):
+        eos_token_ids = {int(token_id) for token_id in eos_token_id}
+    else:
+        eos_token_ids = set()
+
+    ended_on_eos = bool(eos_token_ids) and int(sequence[-1].item()) in eos_token_ids
+    new_token_count = int(sequence.shape[-1]) - 1  # seq2seq generation starts from decoder start token.
+    if ended_on_eos:
+        stop_reason = "eos_token"
+    elif new_token_count >= args.max_new_tokens:
+        stop_reason = "max_new_tokens"
+    else:
+        stop_reason = "unknown"
 
     print(f"Model: {model_dir}")
     print(f"Device: {device}")
+    print(f"New tokens: {new_token_count}")
+    print(f"Stop reason: {stop_reason}")
     print(f"Input: {args.text}")
     print(f"Output: {output_text}")
 
