@@ -1,40 +1,22 @@
 import streamlit as st
 
-from annotator_utils import (
-    format_saved_path,
-    init_state,
-    remove_dataset,
-)
-from session_helper import (
-    get_dataset_order,
-    get_datasets,
-    set_selected_dataset_id,
-)
+import session_helper
+import storage
 
-st.set_page_config(page_title="Training Data Annotator", layout="wide")
-init_state()
+st.set_page_config(page_title="Training Data Annotator", layout="centered")
 
-order = get_dataset_order()
-datasets = get_datasets()
+datasets = storage.list_files()
 
-st.subheader("Uploaded Files")
-if not order:
-    st.info("No dataset uploaded yet.")
-else:
-    for dataset_id in order.copy():
-        dataset = datasets[dataset_id]
-        left_col, mid_col, right_col = st.columns([6, 2, 2])
-        with left_col:
-            st.write(f"**{dataset['name']}**")
-            st.caption(f"{len(dataset['records'])} records")
-            saved_path = dataset.get("saved_path")
-            if saved_path:
-                st.caption(f"Saved at `{format_saved_path(saved_path)}`")
-        with mid_col:
-            if st.button("Select", key=f"main_select_{dataset_id}", use_container_width=True):
-                set_selected_dataset_id(dataset_id)
-                st.switch_page("pages/2_View_Modify.py")
-        with right_col:
-            if st.button("Remove", key=f"main_remove_{dataset_id}", use_container_width=True):
-                remove_dataset(dataset_id)
-                st.rerun()
+st.subheader("Datasets")
+st.caption(f"Imported files are saved under `{str(storage.STORAGE_DIR)}`.")
+if len(datasets) == 0:
+    st.text("No dataset found")
+for idx, dataset in enumerate(datasets):
+    name_col, but_col = st.columns([9, 2])
+    with name_col:
+        st.markdown(f"#### {dataset}")
+
+    with but_col:
+        if st.button("Open", use_container_width=True, key=idx):
+            session_helper.set_selected_file(dataset)
+            st.switch_page("pages/2_View_Modify.py", query_params={"dataset": dataset})

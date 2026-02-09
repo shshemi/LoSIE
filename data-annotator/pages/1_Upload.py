@@ -1,40 +1,28 @@
+import os
+
 import streamlit as st
 
-from annotator_utils import (
-    ANNOTATOR_OUTPUT_DIR,
-    add_uploaded_file,
-    format_saved_path,
-    init_state,
-)
-from session_helper import get_load_errors
+import storage
+from storage import STORAGE_DIR
 
-st.set_page_config(page_title="Upload Datasets", layout="wide")
-init_state()
+st.set_page_config(page_title="Upload Datasets", layout="centered")
 
 st.title("Upload")
-st.write("Upload JSONL/JSON files for annotation.")
-st.caption(f"Imported files are saved under `{format_saved_path(ANNOTATOR_OUTPUT_DIR)}`.")
-st.page_link("pages/2_View_Modify.py", label="Go to View / Modify")
-
-disk_load_errors = get_load_errors()
-if disk_load_errors:
-    with st.expander(f"Could not load {len(disk_load_errors)} file(s) from disk"):
-        for error in disk_load_errors:
-            st.write(f"- {error}")
+st.write("Upload JSONL files for verification.")
+st.caption(f"Imported files are saved under `{str(STORAGE_DIR)}`.")
 
 uploaded_files = st.file_uploader(
-    "Select dataset files",
-    type=["jsonl", "json"],
+    "Upload dataset file",
+    type=["jsonl"],
     accept_multiple_files=True,
 )
 
-if st.button("Import Selected Files", type="primary", disabled=not uploaded_files):
+if st.button("Import Selected File(s)", type="primary", disabled=not uploaded_files):
     for uploaded_file in uploaded_files or []:
         try:
-            added, message = add_uploaded_file(uploaded_file)
-            if added:
-                st.success(message)
-            else:
-                st.info(message)
+            name = os.path.splitext(uploaded_file.name)[0]
+            value = uploaded_file.getvalue()
+            (line_count, path) = storage.import_file(value, name)
+            st.success(f"File {name}({line_count} lines) imported into {path}")
         except ValueError as exc:
             st.error(f"{uploaded_file.name}: {exc}")
