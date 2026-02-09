@@ -5,7 +5,7 @@ import storage
 
 st.set_page_config(page_title="View / Modify", layout="wide")
 
-if st.button("← Back", help="Go back to home"):
+if st.button("← Back", help="Go back to home", type="tertiary"):
     st.switch_page("app.py")
 st.title("View / Modify")
 

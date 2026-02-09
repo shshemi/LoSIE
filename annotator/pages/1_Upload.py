@@ -7,6 +7,8 @@ from storage import STORAGE_DIR
 
 st.set_page_config(page_title="Upload Datasets", layout="centered")
 
+if st.button("← Back", help="Go back to home", type="tertiary"):
+    st.switch_page("app.py")
 st.title("Upload")
 st.write("Upload JSONL files for verification.")
 st.caption(f"Imported files are saved under `{str(STORAGE_DIR)}`.")
