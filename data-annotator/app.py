@@ -1,19 +1,21 @@
 import streamlit as st
 
 from annotator_utils import (
-    DATASET_ORDER_KEY,
-    DATASETS_KEY,
-    SELECTED_DATASET_KEY,
     format_saved_path,
     init_state,
     remove_dataset,
+)
+from session_helper import (
+    get_dataset_order,
+    get_datasets,
+    set_selected_dataset_id,
 )
 
 st.set_page_config(page_title="Training Data Annotator", layout="wide")
 init_state()
 
-order = st.session_state[DATASET_ORDER_KEY]
-datasets = st.session_state[DATASETS_KEY]
+order = get_dataset_order()
+datasets = get_datasets()
 
 st.subheader("Uploaded Files")
 if not order:
@@ -30,7 +32,7 @@ else:
                 st.caption(f"Saved at `{format_saved_path(saved_path)}`")
         with mid_col:
             if st.button("Select", key=f"main_select_{dataset_id}", use_container_width=True):
-                st.session_state[SELECTED_DATASET_KEY] = dataset_id
+                set_selected_dataset_id(dataset_id)
                 st.switch_page("pages/2_View_Modify.py")
         with right_col:
             if st.button("Remove", key=f"main_remove_{dataset_id}", use_container_width=True):

@@ -1,10 +1,12 @@
 import streamlit as st
 
-from annotator_utils import (
-    DATASET_ORDER_KEY,
-    DATASETS_KEY,
-    SELECTED_DATASET_KEY,
-    init_state,
+from annotator_utils import init_state
+from session_helper import (
+    get_dataset_order,
+    get_datasets,
+    get_selected_dataset_id,
+    set_dataset_current_index,
+    set_selected_dataset_id,
 )
 
 
@@ -20,9 +22,7 @@ def navigation_controls(
             use_container_width=True,
             disabled=current_index == 0,
         ):
-            st.session_state[DATASETS_KEY][dataset_id]["current_index"] = (
-                current_index - 1
-            )
+            set_dataset_current_index(dataset_id, current_index - 1)
             st.rerun()
 
     with next_col:
@@ -32,9 +32,7 @@ def navigation_controls(
             use_container_width=True,
             disabled=current_index >= total_records - 1,
         ):
-            st.session_state[DATASETS_KEY][dataset_id]["current_index"] = (
-                current_index + 1
-            )
+            set_dataset_current_index(dataset_id, current_index + 1)
             st.rerun()
 
 
@@ -43,17 +41,17 @@ init_state()
 
 st.title("View / Modify")
 
-order = st.session_state[DATASET_ORDER_KEY]
-datasets = st.session_state[DATASETS_KEY]
+order = get_dataset_order()
+datasets = get_datasets()
 
 if not order:
     st.info("No uploaded files found.")
     st.stop()
 
-selected_dataset_id = st.session_state[SELECTED_DATASET_KEY]
+selected_dataset_id = get_selected_dataset_id()
 if selected_dataset_id not in datasets:
     selected_dataset_id = order[0]
-    st.session_state[SELECTED_DATASET_KEY] = selected_dataset_id
+    set_selected_dataset_id(selected_dataset_id)
 dataset = datasets[selected_dataset_id]
 
 warnings = dataset["warnings"]
@@ -70,7 +68,7 @@ if total_records == 0:
 
 current_index = dataset.get("current_index", 0)
 current_index = max(0, min(current_index, total_records - 1))
-dataset["current_index"] = current_index
+set_dataset_current_index(selected_dataset_id, current_index)
 
 st.caption(f"Editing record {current_index + 1} of {total_records}")
 

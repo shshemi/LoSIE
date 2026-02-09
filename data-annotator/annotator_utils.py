@@ -5,14 +5,21 @@ import json
 from pathlib import Path
 from typing import Any
 
-import streamlit as st
+from session_helper import (
+    ensure_dataset_order_initialized,
+    ensure_datasets_initialized,
+    ensure_load_errors_initialized,
+    ensure_selected_dataset_id_initialized,
+    get_dataset_order,
+    get_datasets,
+    get_selected_dataset_id,
+    is_bootstrapped,
+    set_bootstrapped,
+    set_load_errors,
+    set_selected_dataset_id,
+)
 
 REQUIRED_FIELDS = ("text", "target")
-DATASETS_KEY = "datasets"
-DATASET_ORDER_KEY = "dataset_order"
-SELECTED_DATASET_KEY = "selected_dataset_id"
-LOAD_ERRORS_KEY = "disk_load_errors"
-BOOTSTRAPPED_KEY = "_annotator_bootstrapped"
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ANNOTATOR_OUTPUT_DIR = PROJECT_ROOT / "output" / "annotator"
 
@@ -121,15 +128,15 @@ def output_file_name(input_name: str, extension: str) -> str:
 
 
 def init_state() -> None:
-    st.session_state.setdefault(DATASETS_KEY, {})
-    st.session_state.setdefault(DATASET_ORDER_KEY, [])
-    st.session_state.setdefault(SELECTED_DATASET_KEY, None)
-    st.session_state.setdefault(LOAD_ERRORS_KEY, [])
+    ensure_datasets_initialized()
+    ensure_dataset_order_initialized()
+    ensure_selected_dataset_id_initialized()
+    ensure_load_errors_initialized()
 
-    if not st.session_state.get(BOOTSTRAPPED_KEY, False):
+    if not is_bootstrapped():
         ANNOTATOR_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         load_saved_datasets_from_disk()
-        st.session_state[BOOTSTRAPPED_KEY] = True
+        set_bootstrapped(True)
 
 
 def format_saved_path(saved_path: str | Path) -> str:
@@ -181,8 +188,8 @@ def add_dataset_to_session(
     warnings: list[str],
     saved_path: Path | None,
 ) -> None:
-    datasets: dict[str, dict[str, Any]] = st.session_state[DATASETS_KEY]
-    order: list[str] = st.session_state[DATASET_ORDER_KEY]
+    datasets = get_datasets()
+    order = get_dataset_order()
 
     if dataset_id in datasets:
         if saved_path is not None:
@@ -199,12 +206,12 @@ def add_dataset_to_session(
     }
     order.append(dataset_id)
 
-    if st.session_state[SELECTED_DATASET_KEY] is None:
-        st.session_state[SELECTED_DATASET_KEY] = dataset_id
+    if get_selected_dataset_id() is None:
+        set_selected_dataset_id(dataset_id)
 
 
 def load_saved_datasets_from_disk() -> None:
-    datasets: dict[str, dict[str, Any]] = st.session_state[DATASETS_KEY]
+    datasets = get_datasets()
     errors: list[str] = []
 
     ANNOTATOR_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -235,14 +242,14 @@ def load_saved_datasets_from_disk() -> None:
 
         add_dataset_to_session(dataset_id, file_path.name, records, warnings, file_path)
 
-    st.session_state[LOAD_ERRORS_KEY] = errors
+    set_load_errors(errors)
 
 
 def add_uploaded_file(uploaded_file: Any) -> tuple[bool, str]:
     raw_bytes = uploaded_file.getvalue()
     dataset_id = hashlib.sha256(raw_bytes).hexdigest()
 
-    datasets: dict[str, dict[str, Any]] = st.session_state[DATASETS_KEY]
+    datasets = get_datasets()
     if dataset_id in datasets:
         if not datasets[dataset_id].get("saved_path"):
             saved_path = save_uploaded_file(uploaded_file.name, raw_bytes, dataset_id)
@@ -266,8 +273,8 @@ def add_uploaded_file(uploaded_file: Any) -> tuple[bool, str]:
 
 
 def remove_dataset(dataset_id: str, delete_file: bool = True) -> None:
-    datasets: dict[str, dict[str, Any]] = st.session_state[DATASETS_KEY]
-    order: list[str] = st.session_state[DATASET_ORDER_KEY]
+    datasets = get_datasets()
+    order = get_dataset_order()
     dataset = datasets.get(dataset_id)
     saved_path_value = dataset.get("saved_path") if dataset else None
 
@@ -284,10 +291,10 @@ def remove_dataset(dataset_id: str, delete_file: bool = True) -> None:
             except OSError:
                 pass
 
-    if st.session_state[SELECTED_DATASET_KEY] == dataset_id:
-        st.session_state[SELECTED_DATASET_KEY] = order[0] if order else None
+    if get_selected_dataset_id() == dataset_id:
+        set_selected_dataset_id(order[0] if order else None)
 
 
 def dataset_label(dataset_id: str) -> str:
-    dataset = st.session_state[DATASETS_KEY][dataset_id]
+    dataset = get_datasets()[dataset_id]
     return f"{dataset['name']} ({len(dataset['records'])} records)"

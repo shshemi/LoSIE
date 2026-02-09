@@ -2,11 +2,11 @@ import streamlit as st
 
 from annotator_utils import (
     ANNOTATOR_OUTPUT_DIR,
-    LOAD_ERRORS_KEY,
     add_uploaded_file,
     format_saved_path,
     init_state,
 )
+from session_helper import get_load_errors
 
 st.set_page_config(page_title="Upload Datasets", layout="wide")
 init_state()
@@ -16,7 +16,7 @@ st.write("Upload JSONL/JSON files for annotation.")
 st.caption(f"Imported files are saved under `{format_saved_path(ANNOTATOR_OUTPUT_DIR)}`.")
 st.page_link("pages/2_View_Modify.py", label="Go to View / Modify")
 
-disk_load_errors = st.session_state[LOAD_ERRORS_KEY]
+disk_load_errors = get_load_errors()
 if disk_load_errors:
     with st.expander(f"Could not load {len(disk_load_errors)} file(s) from disk"):
         for error in disk_load_errors:
