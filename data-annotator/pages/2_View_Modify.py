@@ -10,32 +10,6 @@ from session_helper import (
 )
 
 
-def navigation_controls(
-    dataset_id: str, total_records: int, current_index: int
-) -> None:
-    prev_col, next_col = st.columns(2)
-
-    with prev_col:
-        if st.button(
-            "Previous",
-            key=f"prev_{dataset_id}",
-            use_container_width=True,
-            disabled=current_index == 0,
-        ):
-            set_dataset_current_index(dataset_id, current_index - 1)
-            st.rerun()
-
-    with next_col:
-        if st.button(
-            "Next",
-            key=f"next_{dataset_id}",
-            use_container_width=True,
-            disabled=current_index >= total_records - 1,
-        ):
-            set_dataset_current_index(dataset_id, current_index + 1)
-            st.rerun()
-
-
 st.set_page_config(page_title="View / Modify", layout="wide")
 init_state()
 
@@ -86,8 +60,9 @@ target_value = st.text_area(
     "target", value=record["target"], height=400, key=target_key
 )
 
-if target_value != record["target"]:
+if st.button("Submit", type="primary", use_container_width=True):
     record["target"] = target_value
-
-st.divider()
-navigation_controls(selected_dataset_id, total_records, current_index)
+    record["verified"] = True
+    if current_index < total_records - 1:
+        set_dataset_current_index(selected_dataset_id, current_index + 1)
+    st.rerun()

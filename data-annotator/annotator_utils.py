@@ -20,6 +20,7 @@ from session_helper import (
 )
 
 REQUIRED_FIELDS = ("text", "target")
+VERIFIED_FIELD = "verified"
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ANNOTATOR_OUTPUT_DIR = PROJECT_ROOT / "output" / "annotator"
 
@@ -55,6 +56,8 @@ def normalize_records(raw_records: list[Any]) -> tuple[list[dict[str, Any]], lis
                 warnings.append(
                     f"Record {index} field '{field}' was converted to a string."
                 )
+        if VERIFIED_FIELD not in record:
+            record[VERIFIED_FIELD] = False
 
         normalized.append(record)
 
