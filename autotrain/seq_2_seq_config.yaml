@@ -1,5 +1,5 @@
 task: seq2seq
-base_model: google/byt5-small
+base_model: google/byt5-xl
 project_name: losie
 log: tensorboard
 backend: local
@@ -14,8 +14,8 @@ data:
 
 params:
   max_seq_length: 4096
-  epochs: 64
-  batch_size: 16
+  epochs: 128
+  batch_size: 32
   lr: 2e-5
   optimizer: adamw_torch
   scheduler: linear
