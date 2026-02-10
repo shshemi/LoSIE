@@ -12,7 +12,6 @@ data:
     text_column: text
     target_column: target
 
-
 params:
   max_seq_length: 4096
   epochs: 64
@@ -24,6 +23,6 @@ params:
   mixed_precision: f16
 
 hub:
-  username: 
-  token: 
+  username:
+  token:
   push_to_hub: false
