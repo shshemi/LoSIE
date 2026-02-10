@@ -15,7 +15,7 @@ data:
 params:
   max_seq_length: 4096
   epochs: 128
-  batch_size: 32
+  batch_size: 4
   lr: 2e-5
   optimizer: adamw_torch
   scheduler: linear
