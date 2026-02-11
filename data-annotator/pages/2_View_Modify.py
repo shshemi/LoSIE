@@ -8,7 +8,9 @@ from annotator_utils import (
 )
 
 
-def navigation_controls(dataset_id: str, total_records: int, current_index: int) -> None:
+def navigation_controls(
+    dataset_id: str, total_records: int, current_index: int
+) -> None:
     prev_col, next_col = st.columns(2)
 
     with prev_col:
@@ -18,7 +20,9 @@ def navigation_controls(dataset_id: str, total_records: int, current_index: int)
             use_container_width=True,
             disabled=current_index == 0,
         ):
-            st.session_state[DATASETS_KEY][dataset_id]["current_index"] = current_index - 1
+            st.session_state[DATASETS_KEY][dataset_id]["current_index"] = (
+                current_index - 1
+            )
             st.rerun()
 
     with next_col:
@@ -28,7 +32,9 @@ def navigation_controls(dataset_id: str, total_records: int, current_index: int)
             use_container_width=True,
             disabled=current_index >= total_records - 1,
         ):
-            st.session_state[DATASETS_KEY][dataset_id]["current_index"] = current_index + 1
+            st.session_state[DATASETS_KEY][dataset_id]["current_index"] = (
+                current_index + 1
+            )
             st.rerun()
 
 
@@ -36,21 +42,6 @@ st.set_page_config(page_title="View / Modify", layout="wide")
 init_state()
 
 st.title("View / Modify")
-st.markdown(
-    """
-<style>
-div[data-testid="stTextArea"] textarea {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
-}
-div[data-testid="stCodeBlock"] pre,
-div[data-testid="stCode"] pre {
-    font-size: 1rem !important;
-    line-height: 1.5 !important;
-}
-</style>
-""",
-    unsafe_allow_html=True,
-)
 
 order = st.session_state[DATASET_ORDER_KEY]
 datasets = st.session_state[DATASETS_KEY]
@@ -86,19 +77,16 @@ st.caption(f"Editing record {current_index + 1} of {total_records}")
 record = records[current_index]
 target_key = f"target_{selected_dataset_id}_{current_index}"
 
-target_height = 420
-
-target_line_count = record["target"].count("\n") + 1
-if target_line_count > 14:
-    target_height = min(640, 140 + (target_line_count * 20))
 
 st.markdown("text")
 st.code(
     record["text"],
-    language=None,
+    language="python",
     wrap_lines=True,
 )
-target_value = st.text_area("target", value=record["target"], height=target_height, key=target_key)
+target_value = st.text_area(
+    "target", value=record["target"], height=400, key=target_key
+)
 
 if target_value != record["target"]:
     record["target"] = target_value

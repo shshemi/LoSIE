@@ -40,7 +40,9 @@ def normalize_records(raw_records: list[Any]) -> tuple[list[dict[str, Any]], lis
         for field in REQUIRED_FIELDS:
             if field not in record:
                 record[field] = ""
-                warnings.append(f"Record {index} is missing '{field}'. Added an empty string.")
+                warnings.append(
+                    f"Record {index} is missing '{field}'. Added an empty string."
+                )
             elif not isinstance(record[field], str):
                 record[field] = stringify_value(record[field])
                 warnings.append(
@@ -163,7 +165,9 @@ def save_uploaded_file(file_name: str, raw_bytes: bytes, dataset_id: str) -> Pat
                     return candidate
             except OSError:
                 pass
-            candidate = ANNOTATOR_OUTPUT_DIR / f"{stem}-{dataset_id[:8]}-{counter}{suffix}"
+            candidate = (
+                ANNOTATOR_OUTPUT_DIR / f"{stem}-{dataset_id[:8]}-{counter}{suffix}"
+            )
             counter += 1
 
     candidate.write_bytes(raw_bytes)
@@ -251,7 +255,9 @@ def add_uploaded_file(uploaded_file: Any) -> tuple[bool, str]:
 
     records, warnings = parse_uploaded_dataset(uploaded_file.name, raw_bytes)
     saved_path = save_uploaded_file(uploaded_file.name, raw_bytes, dataset_id)
-    add_dataset_to_session(dataset_id, uploaded_file.name, records, warnings, saved_path)
+    add_dataset_to_session(
+        dataset_id, uploaded_file.name, records, warnings, saved_path
+    )
     return (
         True,
         "Imported "
