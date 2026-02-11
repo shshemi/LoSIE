@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:a100:4
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=80G
+#SBATCH --mem=320G
 #SBATCH --time=3-00:00:00
 #SBATCH --output=__REMOTE_DIR__/logs/losie-sif-run.out
 #SBATCH --error=__REMOTE_DIR__/logs/losie-sif-run.err
