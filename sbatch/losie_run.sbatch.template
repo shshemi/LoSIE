@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=losie-sif-run
 #SBATCH --partition=k2-gpu-a100
-#SBATCH --gres=gpu:a100:1
+#SBATCH --gres=gpu:a100:4
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=80G
