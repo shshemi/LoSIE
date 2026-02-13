@@ -111,7 +111,9 @@ def main() -> None:
         eos_token_ids = set()
 
     ended_on_eos = bool(eos_token_ids) and int(sequence[-1].item()) in eos_token_ids
-    new_token_count = int(sequence.shape[-1]) - 1  # seq2seq generation starts from decoder start token.
+    new_token_count = (
+        int(sequence.shape[-1]) - 1
+    )  # seq2seq generation starts from decoder start token.
     if ended_on_eos:
         stop_reason = "eos_token"
     elif new_token_count >= args.max_new_tokens:
