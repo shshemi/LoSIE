@@ -1,0 +1,28 @@
+task: seq2seq
+base_model: microsoft/Phi-4-mini-instruct
+project_name: losie
+log: tensorboard
+backend: local
+
+data:
+  path: /data
+  train_split: train
+  valid_split: valid
+  column_mapping:
+    text_column: text
+    target_column: target
+
+params:
+  max_seq_length: 4096
+  epochs: 64
+  batch_size: 16
+  lr: 2e-5
+  optimizer: adamw_torch
+  scheduler: linear
+  gradient_accumulation: 1
+  mixed_precision: f16
+
+hub:
+  username:
+  token:
+  push_to_hub: false
