@@ -84,7 +84,7 @@ jobs:
       - name: Prepare remote run files
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         run: |
-          CONFIG_PATH="/workspace/autotrain/seq_2_seq_full_target.yaml"
+          CONFIG_PATH="/workspace/autotrain/config.yaml"
           ESCAPED_CONFIG=$(printf '%s\n' "$CONFIG_PATH" | sed 's/[|&]/\\&/g')
           ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" \
             "mkdir -p '$REMOTE_DIR/logs' '$REMOTE_DIR/output'; \

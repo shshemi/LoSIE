@@ -61,6 +61,7 @@ EOF
 
 %files
     autotrain/ /workspace/
+    autotrain/seq_2_seq_full_target.yaml /workspace/autotrain/config.yaml
     scripts/ /workspace/scripts/
     output/splits/train.jsonl /data/train.jsonl
     output/splits/valid.jsonl /data/valid.jsonl
@@ -72,4 +73,4 @@ EOF
     if [ "$#" -gt 0 ]; then
         exec autotrain "$@"
     fi
-    exec autotrain --config /workspace/autotrain/seq_2_seq_full_target.yaml
+    exec autotrain --config /workspace/autotrain/config.yaml
