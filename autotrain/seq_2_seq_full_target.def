@@ -60,7 +60,6 @@ EOF
     mkdir -p /workspace /output/hf /data
 
 %files
-    autotrain/ /workspace/
     autotrain/seq_2_seq_full_target.yaml /workspace/autotrain/config.yaml
     scripts/ /workspace/scripts/
     output/splits/train.jsonl /data/train.jsonl
