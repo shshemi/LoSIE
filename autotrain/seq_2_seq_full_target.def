@@ -72,4 +72,4 @@ EOF
     if [ "$#" -gt 0 ]; then
         exec autotrain "$@"
     fi
-    exec autotrain --config /workspace/autotrain/seq_2_seq_config.yaml
+    exec autotrain --config /workspace/autotrain/seq_2_seq_full_target.yaml
