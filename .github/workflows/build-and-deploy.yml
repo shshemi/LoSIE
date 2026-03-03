@@ -7,7 +7,10 @@ on:
         description: Definition filename under autotrain used for singularity build
         required: true
         default: seq_2_seq_full_target.def
-        type: string
+        type: choice
+        options:
+          - seq_2_seq_full_target.def
+          - seq_2_seq_phi_4_mini.def
 
 jobs:
   build:
