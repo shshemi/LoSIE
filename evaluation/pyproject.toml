@@ -1,0 +1,16 @@
+[project]
+name = "losie-evaluation"
+version = "0.1.0"
+description = "Evaluate model predictions against ground-truth structured extractions."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+losie-eval = "evaluation.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/evaluation"]
+
+[build-system]
+requires = ["hatchling>=1.24.0"]
+build-backend = "hatchling.build"
