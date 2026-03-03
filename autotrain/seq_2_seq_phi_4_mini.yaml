@@ -1,5 +1,4 @@
 task: llm-sft
-task: seq2seq
 base_model: microsoft/Phi-4-mini-instruct
 project_name: losie
 log: tensorboard
