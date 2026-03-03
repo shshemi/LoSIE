@@ -62,9 +62,13 @@ EOF
 %files
     autotrain/seq_2_seq_full_target.yaml /workspace/autotrain/config.yaml
     scripts/ /workspace/scripts/
-    output/splits/train.jsonl /data/train.jsonl
-    output/splits/valid.jsonl /data/valid.jsonl
-    output/splits/test.jsonl /data/test.jsonl
+
+%post
+    python3.11 /workspace/scripts/download_data.py seq2seq
+    cp /workspace/output/splits/train.jsonl /data/train.jsonl
+    cp /workspace/output/splits/valid.jsonl /data/valid.jsonl
+    cp /workspace/output/splits/test.jsonl /data/test.jsonl
+    rm -rf /workspace/output
 
 %runscript
     cd /output
