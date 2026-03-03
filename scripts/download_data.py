@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 import http.cookiejar
@@ -79,15 +80,28 @@ def download_google_drive(object_id: str, dest_path: Path) -> None:
         raise
 
 
-def main() -> int:
-    repo_root = Path(__file__).resolve().parents[1]
-    dest_dir = repo_root / "output" / "splits"
-
-    object_ids = {
+DATASET_IDS = {
+    "seq2seq": {
         "train.jsonl": "1wrzmIx3mPcpYZR9yHzF8jzyJHksC1MX0",
         "valid.jsonl": "1QuzkNw93tHxz4b1dDMsja_lo6CAe1ESM",
         "test.jsonl": "1ZBbcxGBgA0rxW9JaR_KFw1n4gZPhl5Fn",
-    }
+    },
+    "chat": {
+        "train.jsonl": "1ojLTT_c797cic2_j4WqHB6YiW_99ggfF",
+        "valid.jsonl": "1NG53M1Z5dcz0PmbGlcNPBWd6KNE_ZqLN",
+        "test.jsonl": "1HQiejYe-h4yNr-iU8ha3xHpow70CBrch",
+    },
+}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Download LoSIE dataset splits from Google Drive.")
+    parser.add_argument("format", choices=DATASET_IDS, help="Dataset format to download (seq2seq or chat)")
+    args = parser.parse_args()
+
+    repo_root = Path(__file__).resolve().parents[1]
+    dest_dir = repo_root / "output" / "splits"
+    object_ids = DATASET_IDS[args.format]
 
     for name, object_id in object_ids.items():
         dest_path = dest_dir / name
