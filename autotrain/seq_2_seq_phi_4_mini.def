@@ -61,7 +61,8 @@ EOF
 
 %files
     autotrain/seq_2_seq_phi_4_mini.yaml /workspace/autotrain/config.yaml
-    scripts/ /workspace/scripts/
+    scripts/download_data.py /workspace/scripts/download_data.py
+    scripts/nltk_download.py /workspace/scripts/nltk_download.py
 
 %post
     python3.11 /workspace/scripts/download_data.py chat
