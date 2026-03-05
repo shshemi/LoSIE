@@ -55,6 +55,7 @@ EOF
         deepspeed \
         six \
         nltk
+    python3.11 -m pip install --no-cache-dir --upgrade bitsandbytes
     rm -rf /var/lib/apt/lists/* /root/.cache/pip /tmp/pip-constraints.txt
 
     mkdir -p /workspace /output/hf /data
