@@ -16,7 +16,7 @@ params:
   block_size: 2048
   model_max_length: 4096
   epochs: 16
-  batch_size: 4
+  batch_size: 128
   lr: 1e-5
   peft: true
   quantization: int4
