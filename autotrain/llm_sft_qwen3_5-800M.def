@@ -61,7 +61,7 @@ EOF
     mkdir -p /workspace /output/hf /data
 
 %files
-    autotrain/seq_2_seq_phi_4_mini.yaml /workspace/autotrain/config.yaml
+    autotrain/llm_sft_qwen3_5-800M.yaml /workspace/autotrain/config.yaml
     scripts/download_data.py /workspace/scripts/download_data.py
     scripts/nltk_download.py /workspace/scripts/nltk_download.py
 
