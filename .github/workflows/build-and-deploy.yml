@@ -11,6 +11,7 @@ on:
         options:
           - seq_2_seq_full_target.def
           - seq_2_seq_phi_4_mini.def
+          - llm_sft_qwen3_5-800M.def
 
 jobs:
   build:
