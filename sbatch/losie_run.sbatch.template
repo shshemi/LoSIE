@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=losie-sif-run
 #SBATCH --partition=k2-gpu-a100
-#SBATCH --gres=gpu:a100:4
+#SBATCH --gres=gpu:a100:1
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=320G
+#SBATCH --mem=80G
 #SBATCH --time=3-00:00:00
 #SBATCH --output=__REMOTE_DIR__/logs/losie-sif-run.out
 #SBATCH --error=__REMOTE_DIR__/logs/losie-sif-run.err
