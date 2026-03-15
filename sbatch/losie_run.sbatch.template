@@ -11,8 +11,7 @@
 
 module load apps/singularity/3.10.0
 
-SIF=__REMOTE_DIR__/autotrain.sif
+SIF=__REMOTE_DIR__/losie.sif
 OUTDIR=__REMOTE_DIR__/output
-CONFIG="__AUTOTRAIN_CONFIG__"
 
-singularity run --nv -B "${OUTDIR}:/output" "$SIF" --config "$CONFIG"
+singularity run --nv -B "${OUTDIR}:/output" "$SIF"

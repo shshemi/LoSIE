@@ -3,15 +3,16 @@ name: Build and Deploy
 on:
   workflow_dispatch:
     inputs:
-      autotrain_def:
-        description: Definition filename under autotrain used for singularity build
+      def_file:
+        description: Definition file path for singularity build
         required: true
-        default: seq_2_seq_full_target.def
+        default: autotrain/seq_2_seq_full_target.def
         type: choice
         options:
-          - seq_2_seq_full_target.def
-          - seq_2_seq_phi_4_mini.def
-          - llm_sft_qwen3_5-800M.def
+          - autotrain/seq_2_seq_full_target.def
+          - autotrain/seq_2_seq_phi_4_mini.def
+          - autotrain/llm_sft_qwen3_5-800M.def
+          - unsloth/llm_sft_qwen3_5-800M.def
 
 jobs:
   build:
@@ -22,7 +23,7 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_PORT: ${{ secrets.SSH_PORT }}
       SSH_USER: ${{ secrets.SSH_USER }}
-      AUTOTRAIN_DEF: ${{ inputs.autotrain_def }}
+      DEF_FILE: ${{ inputs.def_file }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,17 +46,12 @@ jobs:
 
       - name: Build SIF
         run: |
-          if [[ "$AUTOTRAIN_DEF" == */* ]]; then
-            echo "autotrain_def must be a filename, not a path: $AUTOTRAIN_DEF" >&2
+          if [[ ! -f "$DEF_FILE" ]]; then
+            echo "Definition file not found: $DEF_FILE" >&2
             exit 1
           fi
-          DEF_PATH="autotrain/$AUTOTRAIN_DEF"
-          if [[ ! -f "$DEF_PATH" ]]; then
-            echo "Definition file not found: $DEF_PATH" >&2
-            exit 1
-          fi
-          sudo singularity build autotrain.sif "$DEF_PATH"
-          sudo chown "$USER:$USER" autotrain.sif
+          sudo singularity build losie.sif "$DEF_FILE"
+          sudo chown "$USER:$USER" losie.sif
 
       - name: Setup SSH agent
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
@@ -78,15 +74,13 @@ jobs:
       - name: SCP SIF to remote host
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         run: |
-          scp -P "$SSH_PORT" autotrain.sif sbatch/losie_run.sbatch.template \
+          scp -P "$SSH_PORT" losie.sif sbatch/losie_run.sbatch.template \
             "${SSH_USER}@${SSH_HOST}:${REMOTE_DIR}/"
 
       - name: Prepare remote run files
         if: ${{ env.SSH_HOST != '' && env.SSH_PORT != '' }}
         run: |
-          CONFIG_PATH="/workspace/autotrain/config.yaml"
-          ESCAPED_CONFIG=$(printf '%s\n' "$CONFIG_PATH" | sed 's/[|&]/\\&/g')
           ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" \
             "mkdir -p '$REMOTE_DIR/logs' '$REMOTE_DIR/output'; \
             mv '$REMOTE_DIR/losie_run.sbatch.template' '$REMOTE_DIR/losie_run.sbatch'; \
-            sed -i \"s|__REMOTE_DIR__|$REMOTE_DIR|g; s|__AUTOTRAIN_CONFIG__|$ESCAPED_CONFIG|g\" '$REMOTE_DIR/losie_run.sbatch'"
+            sed -i \"s|__REMOTE_DIR__|$REMOTE_DIR|g\" '$REMOTE_DIR/losie_run.sbatch'"
