@@ -1,14 +1,30 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "torch==2.9.1",
+#     "torchvision==0.24.1",
+#     "torchaudio==2.9.1",
+#     "unsloth",
+#     "trl",
+#     "datasets",
+#     "pyyaml",
+#     "bitsandbytes",
+# ]
+#
+# [tool.uv]
+# torch-backend = "cu128"
+# ///
 """Unsloth-based LoRA/QLoRA fine-tuning script for LLM-SFT."""
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
 
+from unsloth import FastLanguageModel           # must be first
 import yaml
 from datasets import load_dataset
 from trl import SFTConfig, SFTTrainer
-from unsloth import FastLanguageModel
 
 
 def load_config(path: str) -> dict:
@@ -77,7 +93,6 @@ def main() -> None:
         fp16=mixed_precision == "fp16",
         optim=params.get("optimizer", "paged_adamw_8bit"),
         lr_scheduler_type=params.get("scheduler", "linear"),
-        max_seq_length=params.get("block_size", 2048),
         report_to=cfg.get("log", "tensorboard"),
         logging_dir=f"{output_dir}/logs",
     )
@@ -88,6 +103,7 @@ def main() -> None:
         train_dataset=dataset["train"],
         eval_dataset=dataset["valid"],
         formatting_func=formatting_func,
+        max_seq_length=params.get("block_size", 2048),
         args=training_config,
     )
 
