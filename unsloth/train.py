@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Unsloth-based LoRA/QLoRA fine-tuning script for LLM-SFT."""
+
 from __future__ import annotations
 
 import argparse
 import os
-from pathlib import Path
 
-from unsloth import FastLanguageModel           # must be first
+from unsloth import FastLanguageModel  # must be first
 import yaml
 from datasets import load_dataset
 from trl import SFTConfig, SFTTrainer
@@ -61,9 +61,12 @@ def main() -> None:
     )
 
     def formatting_func(example):
-        return tokenizer.apply_chat_template(
-            example["messages"], tokenize=False, add_generation_prompt=False
-        )
+        return [
+            tokenizer.apply_chat_template(
+                msgs, tokenize=False, add_generation_prompt=False
+            )
+            for msgs in example["messages"]
+        ]
 
     mixed_precision = params.get("mixed_precision", "bf16")
     output_dir = f"/output/{cfg.get('project_name', 'losie')}"
@@ -97,6 +100,14 @@ def main() -> None:
 
     model.save_pretrained_merged(
         f"{output_dir}/merged", tokenizer=tokenizer, save_method="merged_16bit"
+    )
+
+    model.save_pretrained_gguf(
+        f"{output_dir}/gguf", tokenizer=tokenizer, quantization_method="q4_k_m"
+    )
+
+    model.save_pretrained_gguf(
+        f"{output_dir}/gguf", tokenizer=tokenizer, quantization_method="q8_0"
     )
 
 
