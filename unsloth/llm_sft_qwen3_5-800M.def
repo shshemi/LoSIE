@@ -9,7 +9,7 @@ From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
     export PYTHONDONTWRITEBYTECODE=1
     export PYTHONUNBUFFERED=1
     export HF_HOME=/output/hf
-    export PATH="/root/.local/bin:$PATH"
+    export PATH="/usr/local/bin:$PATH"
 
 %post
     set -eux
@@ -27,8 +27,8 @@ From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
         build-essential
     rm -rf /var/lib/apt/lists/*
 
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    export PATH="/root/.local/bin:$PATH"
+    curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+    export PATH="/usr/local/bin:$PATH"
 
     uv python install 3.11
 
@@ -40,7 +40,7 @@ From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
     scripts/download_data.py /workspace/scripts/download_data.py
 
 %post
-    export PATH="/root/.local/bin:$PATH"
+    export PATH="/usr/local/bin:$PATH"
     uv run --python 3.11 /workspace/scripts/download_data.py chat
     cp /workspace/output/splits/train.jsonl /data/train.jsonl
     cp /workspace/output/splits/valid.jsonl /data/valid.jsonl
