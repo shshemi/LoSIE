@@ -50,6 +50,8 @@ From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
         --index-url https://download.pytorch.org/whl/cu128
     python3.11 -m pip install --no-cache-dir \
         unsloth trl datasets pyyaml bitsandbytes
+    python3.11 -m pip install --no-cache-dir causal-conv1d>=1.4.0 || true
+    python3.11 -m pip install --no-cache-dir flash-linear-attention || true
 
     python3.11 /workspace/scripts/download_data.py chat
     cp /workspace/output/splits/train.jsonl /data/train.jsonl

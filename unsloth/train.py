@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 from unsloth import FastLanguageModel           # must be first
@@ -67,6 +68,8 @@ def main() -> None:
     mixed_precision = params.get("mixed_precision", "bf16")
     output_dir = f"/output/{cfg.get('project_name', 'losie')}"
 
+    os.environ["TENSORBOARD_LOGGING_DIR"] = f"{output_dir}/logs"
+
     training_config = SFTConfig(
         output_dir=output_dir,
         per_device_train_batch_size=params.get("batch_size", 128),
@@ -78,7 +81,6 @@ def main() -> None:
         optim=params.get("optimizer", "paged_adamw_8bit"),
         lr_scheduler_type=params.get("scheduler", "linear"),
         report_to=cfg.get("log", "tensorboard"),
-        logging_dir=f"{output_dir}/logs",
     )
 
     trainer = SFTTrainer(
