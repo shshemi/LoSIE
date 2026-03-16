@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#     "torch==2.9.1",
-#     "torchvision==0.24.1",
-#     "torchaudio==2.9.1",
-#     "unsloth",
-#     "trl",
-#     "datasets",
-#     "pyyaml",
-#     "bitsandbytes",
-# ]
-#
-# [tool.uv]
-# torch-backend = "cu128"
-# ///
 """Unsloth-based LoRA/QLoRA fine-tuning script for LLM-SFT."""
 from __future__ import annotations
 
