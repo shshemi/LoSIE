@@ -8,7 +8,7 @@ import os
 
 from unsloth import FastLanguageModel  # must be first
 import yaml
-from datasets import load_dataset
+from datasets import Dataset, load_dataset
 from trl import SFTConfig, SFTTrainer
 
 
@@ -60,13 +60,16 @@ def main() -> None:
         },
     )
 
-    def formatting_func(example):
-        return [
-            tokenizer.apply_chat_template(
-                msgs, tokenize=False, add_generation_prompt=False
-            )
-            for msgs in example["messages"]
-        ]
+    train_texts = [
+        tokenizer.apply_chat_template(m, tokenize=False, add_generation_prompt=False)
+        for m in dataset["train"]["messages"]
+    ]
+    valid_texts = [
+        tokenizer.apply_chat_template(m, tokenize=False, add_generation_prompt=False)
+        for m in dataset["valid"]["messages"]
+    ]
+    train_dataset = Dataset.from_dict({"text": train_texts})
+    valid_dataset = Dataset.from_dict({"text": valid_texts})
 
     mixed_precision = params.get("mixed_precision", "bf16")
     output_dir = f"/output/{cfg.get('project_name', 'losie')}"
@@ -89,9 +92,9 @@ def main() -> None:
     trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,
-        train_dataset=dataset["train"],
-        eval_dataset=dataset["valid"],
-        formatting_func=formatting_func,
+        train_dataset=train_dataset,
+        eval_dataset=valid_dataset,
+        dataset_text_field="text",
         max_seq_length=params.get("block_size", 2048),
         args=training_config,
     )
