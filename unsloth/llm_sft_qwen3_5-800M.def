@@ -10,6 +10,7 @@ From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
     export PYTHONUNBUFFERED=1
     export HF_HOME=/output/hf
     export PATH="/usr/local/bin:$PATH"
+    export UNSLOTH_LLAMA_CPP_PATH=/opt/llama.cpp
 
 %post
     set -eux
@@ -25,6 +26,10 @@ From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
         curl \
         git \
         build-essential \
+        cmake \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        libgomp1 \
         software-properties-common
     add-apt-repository -y ppa:deadsnakes/ppa
     apt-get update
@@ -52,6 +57,16 @@ From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
         unsloth trl datasets pyyaml bitsandbytes tensorboard tensorboardX
     python3.11 -m pip install --no-cache-dir causal-conv1d>=1.4.0 || true
     python3.11 -m pip install --no-cache-dir flash-linear-attention || true
+    python3.11 -m pip install --no-cache-dir gguf protobuf sentencepiece mistral_common
+
+    git clone https://github.com/ggml-org/llama.cpp /opt/llama.cpp
+    cd /opt/llama.cpp
+    cmake . -B build -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=OFF
+    cmake --build build --config Release -j$(nproc) --target llama-quantize llama-cli llama-mtmd-cli llama-gguf-split llama-server
+    cp build/bin/llama-* .
+    rm -rf build
+    chmod -R a+rX /opt/llama.cpp
+    cd /
 
     python3.11 /workspace/scripts/download_data.py chat
     cp /workspace/output/splits/train.jsonl /data/train.jsonl
