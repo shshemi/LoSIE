@@ -10,7 +10,7 @@ From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
     export PYTHONUNBUFFERED=1
     export HF_HOME=/output/hf
     export PATH="/usr/local/bin:$PATH"
-    export UNSLOTH_LLAMA_CPP_PATH=/opt/llama.cpp
+    export UNSLOTH_LLAMA_CPP_PATH=/output/llama.cpp
 
 %post
     set -eux
@@ -75,5 +75,6 @@ From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
     rm -rf /workspace/output
 
 %runscript
+    cp -a /opt/llama.cpp /output/llama.cpp
     cd /output
     exec python3.11 /workspace/unsloth/train.py --config /workspace/unsloth/config.yaml
