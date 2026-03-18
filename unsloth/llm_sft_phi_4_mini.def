@@ -1,0 +1,80 @@
+Bootstrap: docker
+From: nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
+
+%labels
+    Author shshemi-ai-bot
+    Description Unsloth LoRA fine-tuning container (CUDA 12.8, PyTorch cu128)
+
+%environment
+    export PYTHONDONTWRITEBYTECODE=1
+    export PYTHONUNBUFFERED=1
+    export HF_HOME=/output/hf
+    export PATH="/usr/local/bin:$PATH"
+    export UNSLOTH_LLAMA_CPP_PATH=/output/llama.cpp
+
+%post
+    set -eux
+    export DEBIAN_FRONTEND=noninteractive
+    export TZ=Europe/London
+    ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
+    echo $TZ > /etc/timezone
+
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        tzdata \
+        ca-certificates \
+        curl \
+        git \
+        build-essential \
+        cmake \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        libgomp1 \
+        software-properties-common
+    add-apt-repository -y ppa:deadsnakes/ppa
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        python3.11 \
+        python3.11-venv \
+        python3.11-dev
+    rm -rf /var/lib/apt/lists/*
+
+    python3.11 -m ensurepip --upgrade
+    python3.11 -m pip install --upgrade pip
+
+    mkdir -p /workspace /output/hf /data
+
+%files
+    unsloth/train.py /workspace/unsloth/train.py
+    unsloth/llm_sft_phi_4_mini.yaml /workspace/unsloth/config.yaml
+    scripts/download_data.py /workspace/scripts/download_data.py
+
+%post
+    python3.11 -m pip install --no-cache-dir \
+        torch==2.10.0 torchvision==0.25.0 torchaudio==2.10.0 \
+        --index-url https://download.pytorch.org/whl/cu128
+    python3.11 -m pip install --no-cache-dir \
+        unsloth trl datasets pyyaml bitsandbytes tensorboard tensorboardX
+    python3.11 -m pip install --no-cache-dir causal-conv1d>=1.4.0 || true
+    python3.11 -m pip install --no-cache-dir flash-linear-attention || true
+    python3.11 -m pip install --no-cache-dir gguf protobuf sentencepiece mistral_common
+
+    git clone https://github.com/ggml-org/llama.cpp /opt/llama.cpp
+    cd /opt/llama.cpp
+    cmake . -B build -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=OFF
+    cmake --build build --config Release -j$(nproc) --target llama-quantize llama-cli llama-mtmd-cli llama-gguf-split llama-server
+    cp build/bin/llama-* .
+    rm -rf build
+    chmod -R a+rX /opt/llama.cpp
+    cd /
+
+    python3.11 /workspace/scripts/download_data.py chat
+    cp /workspace/output/splits/train.jsonl /data/train.jsonl
+    cp /workspace/output/splits/valid.jsonl /data/valid.jsonl
+    cp /workspace/output/splits/test.jsonl /data/test.jsonl
+    rm -rf /workspace/output
+
+%runscript
+    cp -a /opt/llama.cpp /output/llama.cpp
+    cd /output
+    exec python3.11 /workspace/unsloth/train.py --config /workspace/unsloth/config.yaml
