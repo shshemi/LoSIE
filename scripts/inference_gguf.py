@@ -89,7 +89,7 @@ def main() -> None:
                 do_sample=args.temperature > 0,
             )
 
-        new_tokens = output_ids[0, input_ids.shape[1]:]
+        new_tokens = output_ids[0, input_ids.shape[1] :]
         print(tokenizer.decode(new_tokens, skip_special_tokens=True))
         print()
 
