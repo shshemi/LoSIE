@@ -12,10 +12,10 @@ from vllm import LLM, SamplingParams
 def main() -> None:
 
     # Path to your locally trained model
-    MODEL_PATH = "output/test"
+    MODEL_PATH = "output/losie/losie"
 
     # Create the model
-    llm = LLM(model=MODEL_PATH, disable_sliding_window=True, max_model_len=2048)
+    llm = LLM(model=MODEL_PATH, disable_sliding_window=True, max_model_len=4096)
 
     # Generation parameters
     sampling_params = SamplingParams(temperature=0.7, top_p=0.9, max_tokens=128)
