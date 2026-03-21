@@ -5,7 +5,6 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 STORAGE_DIR = PROJECT_ROOT / "output" / "annotator"
-# STORAGE_DIR = "../output/annotator/"
 
 
 def import_file(raw: bytes, name: str) -> tuple[int, str]:
