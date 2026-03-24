@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 import http.cookiejar
 import re
@@ -47,8 +46,12 @@ def download_google_drive(object_id: str, dest_path: Path) -> None:
 
     try:
         cookie_jar = http.cookiejar.CookieJar()
-        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
-        request = urllib.request.Request(_build_url(object_id), headers={"User-Agent": USER_AGENT})
+        opener = urllib.request.build_opener(
+            urllib.request.HTTPCookieProcessor(cookie_jar)
+        )
+        request = urllib.request.Request(
+            _build_url(object_id), headers={"User-Agent": USER_AGENT}
+        )
 
         with opener.open(request) as response:
             if _is_file_response(response):
@@ -60,14 +63,21 @@ def download_google_drive(object_id: str, dest_path: Path) -> None:
                         out.write(chunk)
             else:
                 html = response.read(2 * 1024 * 1024).decode("utf-8", errors="ignore")
-                token = _get_confirm_token_from_cookies(cookie_jar) or _get_confirm_token_from_html(html)
+                token = _get_confirm_token_from_cookies(
+                    cookie_jar
+                ) or _get_confirm_token_from_html(html)
                 if not token:
-                    raise RuntimeError("Unable to retrieve Google Drive confirmation token.")
+                    raise RuntimeError(
+                        "Unable to retrieve Google Drive confirmation token."
+                    )
 
                 confirm_request = urllib.request.Request(
                     _build_url(object_id, token), headers={"User-Agent": USER_AGENT}
                 )
-                with opener.open(confirm_request) as confirm_response, tmp_path.open("wb") as out:
+                with (
+                    opener.open(confirm_request) as confirm_response,
+                    tmp_path.open("wb") as out,
+                ):
                     while True:
                         chunk = confirm_response.read(CHUNK_SIZE)
                         if not chunk:
@@ -95,8 +105,14 @@ DATASET_IDS = {
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Download LoSIE dataset splits from Google Drive.")
-    parser.add_argument("format", choices=DATASET_IDS, help="Dataset format to download (seq2seq or chat)")
+    parser = argparse.ArgumentParser(
+        description="Download LoSIE dataset splits from Google Drive."
+    )
+    parser.add_argument(
+        "format",
+        choices=DATASET_IDS,
+        help="Dataset format to download (seq2seq or chat)",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[1]
