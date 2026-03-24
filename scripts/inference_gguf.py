@@ -8,7 +8,6 @@
 #     "accelerate",
 # ]
 # ///
-"""Interactive GGUF inference. Each input is a fresh context, not a continuing chat."""
 
 import argparse
 import os
