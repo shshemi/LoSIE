@@ -1,20 +1,16 @@
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
-#     "transformers",
-#     "torch",
-#     "gguf",
-#     "sentencepiece",
-#     "accelerate",
+#     "llama-cpp-python",
 # ]
 # ///
 
 import argparse
+import json
 import os
 import sys
 
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from llama_cpp import Llama
 
 SYSTEM_PROMPT = (
     "You are a log parser. Extract all key-value fields from the input log line, "
@@ -22,11 +18,29 @@ SYSTEM_PROMPT = (
 )
 
 
+def infer(llm: Llama, user_input: str, max_tokens: int, temperature: float) -> str:
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": user_input},
+    ]
+    response = llm.create_chat_completion(
+        messages=messages,
+        max_tokens=max_tokens,
+        temperature=temperature,
+    )
+    return response["choices"][0]["message"]["content"]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Interactive GGUF inference (new context per input)."
+        description="GGUF inference — batch JSONL (default) or interactive mode."
     )
     parser.add_argument("--model", "-m", required=True, help="Path to GGUF model file.")
+    parser.add_argument("--input", "-i", help="Input JSONL file (required for batch mode).")
+    parser.add_argument("--output", "-o", help="Output JSONL file (required for batch mode).")
+    parser.add_argument("--input-key", default="input", help="JSON key to read from each line (default: input).")
+    parser.add_argument("--output-key", default="predicted", help="JSON key for LLM response (default: predicted).")
+    parser.add_argument("--interactive", action="store_true", help="Run in interactive REPL mode.")
     parser.add_argument(
         "--max-tokens",
         type=int,
@@ -42,57 +56,55 @@ def main() -> None:
     args = parser.parse_args()
     args.model = os.path.abspath(args.model)
 
+    if not args.interactive:
+        if not args.input or not args.output:
+            parser.error("--input and --output are required in batch mode (use --interactive for REPL)")
+
     if not os.path.isfile(args.model):
         print(f"Error: model file not found: {args.model}", file=sys.stderr)
         sys.exit(1)
 
-    model_dir = os.path.dirname(args.model)
-    gguf_filename = os.path.basename(args.model)
-
     print(f"Loading model: {args.model}")
-    tokenizer = AutoTokenizer.from_pretrained(model_dir, gguf_file=gguf_filename)
-    model = AutoModelForCausalLM.from_pretrained(model_dir, gguf_file=gguf_filename)
-
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-    elif torch.backends.mps.is_available():
-        device = torch.device("mps")
-    else:
-        device = torch.device("cpu")
-    model.to(device)
-
-    print(f"Model loaded on {device}. Type a log line (Ctrl+D to quit).\n")
-
-    while True:
+    with open(os.devnull, "w") as devnull:
+        old_stderr = sys.stderr
+        sys.stderr = devnull
         try:
-            user_input = input("> ")
-        except (EOFError, KeyboardInterrupt):
-            break
-
-        if not user_input.strip():
-            continue
-
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_input},
-        ]
-        input_ids = tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True, return_tensors="pt"
-        ).to(device)
-
-        with torch.no_grad():
-            output_ids = model.generate(
-                input_ids,
-                max_new_tokens=args.max_tokens,
-                temperature=args.temperature,
-                do_sample=args.temperature > 0,
+            llm = Llama(
+                model_path=args.model,
+                n_gpu_layers=-1,
+                n_ctx=2048,
+                verbose=False,
             )
+        finally:
+            sys.stderr = old_stderr
 
-        new_tokens = output_ids[0, input_ids.shape[1] :]
-        print(tokenizer.decode(new_tokens, skip_special_tokens=True))
-        print()
+    if args.interactive:
+        print("Model loaded. Type a log line (Ctrl+D to quit).\n")
 
-    print("\nDone.")
+        while True:
+            try:
+                user_input = input("> ")
+            except (EOFError, KeyboardInterrupt):
+                break
+
+            if not user_input.strip():
+                continue
+
+            print(infer(llm, user_input, args.max_tokens, args.temperature))
+            print()
+
+        print("\nDone.")
+    else:
+        print(f"Model loaded. Processing {args.input} ...")
+        with open(args.input) as fin, open(args.output, "w") as fout:
+            for i, line in enumerate(fin, 1):
+                record = json.loads(line)
+                value = record[args.input_key]
+                result = infer(llm, value, args.max_tokens, args.temperature)
+                out_record = {**record, args.output_key: result}
+                fout.write(json.dumps(out_record) + "\n")
+                print(f"\r  Processed {i} lines", end="", flush=True)
+        print(f"\nDone. Output written to {args.output}")
 
 
 if __name__ == "__main__":
